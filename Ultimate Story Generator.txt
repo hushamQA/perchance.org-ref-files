@@ -1,0 +1,4287 @@
+
+===============================
+✅ محرر القوائم — List Editor
+===============================
+
+commentsPlugin = {import:comments-plugin}
+generateText = {import:ai-text-plugin}
+kv = {import:kv-plugin}
+comments = {import:comments-plugin}
+favicon = {import:favicon-plugin}
+
+$meta
+  title = Ultimate Story Generator
+  description = Generate stories chapter by chapter with AI. Includes a built in character generator and AI assistant to help you come up with ideas. Free forever, no sign up, no account, infinite downloads.
+  image = https://user.uploads.dev/file/ebd10ffbac0c36b4f0e9dd18f61548ec.jpg
+  header 
+    mode = minimal
+
+// Tips:
+//  - Highlight multiple lines and press Tab or Shift+Tab to indent and un-indent them all an once
+//  - You can change the URL of your generator by clicking the "settings" button in the top-right
+//  - You can use the sparkle button in the lower-right of the screen to ask the AI to adjust the visual design of your generator.
+//  - Add background images, fonts, and other stuff with plugins:  perchance.org/plugins
+//  - Here are some generators you might like to import:  perchance.org/useful-generators
+//  - Read this page after reading the tutorial:  perchance.org/examples
+//  - There's a gear button in the top-left which you can use to make the lines wrap around when they reach the edge of the screen, and to change the font size. Also, if you add   $output=[this.joinItems("<br>")]   as the first or last item in your list, then writing [yourListName] will magically output all of the items joined together with <br> (which means "line break" in HTML - i.e. a line separator), rather than outputting a random item from the "yourListName" list.
+//  - Ask our friendly community members if you need help:  lemmy.world/c/perchance
+
+
+
+
+===============================
+✅ محرر HTML — HTML Editor
+===============================
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  The ultimate AI story generator. Free forever, no sign-up, no account, no BS. Built in character generator, writing assistant, free download, unlimited stories. Powered by Perchance.org. Created by Numbuh5.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultimate Story Generator</title>
+  <meta name="description" content="The ultimate AI story generator. Free forever, no sign-up, no account, no BS. Built in character generator, writing assistant, free download, unlimited stories. Powered by Perchance.org">
+  <style>
+    /* Modern CSS Variables with refined color palette */
+    :root {
+      --bg-body: #0f0f0f;
+      --bg-panel: #1a1a1a;
+      --bg-input: #242424;
+      --bg-hover: #2f2f2f;
+      --text-main: #f0f0f0;
+      --text-muted: #a0a0a0;
+      --border-color: #333;
+      --border-light: #2a2a2a;
+      --accent-primary: #6366f1;
+      --accent-primary-hover: #4f46e5;
+      --accent-success: #10b981;
+      --accent-success-hover: #059669;
+      --accent-danger: #ef4444;
+      --accent-danger-hover: #dc2626;
+      --accent-warning: #f59e0b;
+      --accent-warning-hover: #d97706;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      /* Focus/Outline color for all buttons - fallback is the default accent */
+      --focus-color: rgba(99, 102, 241, 0.4);
+      /* Button glow colors */
+      --btn-glow-primary: rgba(99, 102, 241, 0.4);
+      --btn-glow-success: rgba(16, 185, 129, 0.4);
+      --btn-glow-danger: rgba(239, 68, 68, 0.4);
+    }
+    /* Light mode fallbacks - these are now managed by JS Background Themes, but kept for safety */
+    body.light-mode {
+      --bg-body: #fafafa;
+      --bg-panel: #ffffff;
+      --bg-input: #f5f5f5;
+      --bg-hover: #e8e8e8;
+      --text-main: #1a1a1a;
+      --text-muted: #666;
+      --border-color: #e0e0e0;
+      --border-light: #f0f0f0;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modern base styles */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      margin: 0;
+      text-align: left;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+    
+    /* Main Container Layout */
+    #mainCtn {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: var(--bg-body); /* Ensures main content is readable over custom bg */
+      color: var(--text-main);
+      text-align: left;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, opacity 0.3s ease;
+    }
+    
+    /* When background image is uploaded, make main content semi-transparent */
+    body.has-custom-bg #mainCtn {
+      background-color: rgba(15, 15, 15, 0.5);
+    }
+    body.light-mode.has-custom-bg #mainCtn {
+      background-color: rgba(250, 250, 250, 0.5);
+    }
+    
+    /* Backdrop overlay for panels to obscure custom background - panels remain opaque */
+    .overlay-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: var(--bg-panel); /* Use opaque panel color instead of body */
+      z-index: 2000;
+      overflow-y: auto;
+      padding: 24px;
+      box-sizing: border-box;
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border: none;
+      box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .overlay-panel.open {
+      transform: translateX(0);
+    }
+
+    /* Modern Memory Grid */
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .memory-grid-btn {
+      background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      height: 100%;
+      min-height: 160px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .memory-grid-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .memory-grid-btn:hover {
+      transform: translateY(-4px);
+      border-color: var(--glow-color, var(--accent-primary)); /* Updated to use random glow color */
+      box-shadow: var(--shadow-lg), 0 0 20px var(--glow-color, rgba(0,0,0,0.2)); /* Added glow */
+    }
+
+    .memory-grid-btn:hover::before {
+      opacity: 0.1;
+    }
+
+    .memory-grid-btn h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    .memory-grid-btn p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Modern Collapsible Section */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-color);
+      transition: opacity 0.2s ease;
+    }
+    
+    .collapsible-header:hover {
+      opacity: 0.7;
+    }
+    
+    .collapsible-header .toggle-icon {
+      font-size: 14px;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .collapsible-header.expanded .toggle-icon {
+      transform: rotate(90deg);
+    }
+    
+    .collapsible-content {
+      display: none;
+      margin-top: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .collapsible-content.visible {
+      display: block;
+    }
+
+    /* Modern Section Cards */
+    .clear-section {
+      background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%);
+      padding: 24px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .clear-section:hover {
+      border-color: var(--border-light);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .clear-section h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    
+    .clear-section p {
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* Modern Input Styling */
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      background-color: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--glow-color, var(--accent-primary)); /* Updated to use random glow color */
+      box-shadow: 0 0 0 3px var(--glow-color, var(--focus-color)); /* Updated to use random glow color */
+    }
+    
+    /* Remove spinner arrows from number inputs */
+    input[type="number"].length-input {
+      -moz-appearance: textfield;
+    }
+    input[type="number"].length-input::-webkit-outer-spin-button,
+    input[type="number"].length-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Color Picker Styling */
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      overflow: hidden;
+      background: none;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+    }
+    
+    /* Color inputs in theme grids should match dot size */
+    .theme-colors input[type="color"] {
+      width: 20px;
+      height: 20px;
+      border: none;
+      padding: 0;
+    }
+    
+    /* Font Color Picker styling */
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .color-picker-label {
+      flex: 0 0 120px;
+      font-size: 14px;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+    
+    .color-picker-input-wrapper {
+      position: relative;
+      width: 50px;
+      height: 35px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    
+    .color-picker-input-wrapper input[type="color"] {
+      width: 150%;
+      height: 150%;
+      margin-left: -25%;
+      margin-top: -25%;
+    }
+    
+    .color-picker-value {
+      flex: 1;
+      font-size: 13px;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+    
+    /* Modern Button Styling */
+    button {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      /* Vars for random color distribution support */
+      --btn-bg-override: var(--accent-primary);
+      --btn-hover-override: var(--accent-primary-hover);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--glow-color, var(--focus-color)); /* Updated to use random glow color */
+    }
+    
+    /* Primary Button */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--btn-bg-override, var(--accent-primary)) 0%, var(--btn-hover-override, var(--accent-primary-hover)) 100%);
+      color: white;
+      box-shadow: 0 2px 8px var(--glow-color, var(--btn-glow-primary)); /* Updated to use glow override */
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--glow-color, var(--btn-glow-primary));
+    }
+    
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    /* Success Button */
+    .btn-success {
+      background: linear-gradient(135deg, var(--btn-bg-override, var(--accent-success)) 0%, var(--btn-hover-override, var(--accent-success-hover)) 100%);
+      color: white;
+      box-shadow: 0 2px 8px var(--glow-color, var(--btn-glow-success));
+    }
+    
+    .btn-success:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--glow-color, var(--btn-glow-success));
+    }
+
+    /* Danger Button */
+    .btn-danger {
+      background: linear-gradient(135deg, var(--btn-bg-override, var(--accent-danger)) 0%, var(--btn-hover-override, var(--accent-danger-hover)) 100%);
+      color: white;
+      box-shadow: 0 2px 8px var(--glow-color, var(--btn-glow-danger));
+    }
+    
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--glow-color, var(--btn-glow-danger));
+    }
+
+    /* Secondary/Neutral Button - changes color with theme */
+    .btn-secondary {
+      /* Updated to use gradient and overrides to support random distribution */
+      background: linear-gradient(135deg, var(--btn-bg-override, var(--accent-primary)) 0%, var(--btn-hover-override, var(--accent-primary-hover)) 100%);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px var(--glow-color, var(--btn-glow-primary));
+    }
+    
+    .btn-secondary:hover:not(:disabled) {
+      /* Use hover override or standard hover var */
+      background: linear-gradient(135deg, var(--btn-hover-override, var(--accent-primary-hover)) 0%, var(--btn-hover-override, var(--accent-primary-hover)) 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--glow-color, var(--btn-glow-primary));
+    }
+
+    /* Warning Button */
+    .btn-warning {
+      background: linear-gradient(135deg, var(--btn-bg-override, var(--accent-warning)) 0%, var(--btn-hover-override, var(--accent-warning-hover)) 100%);
+      color: white;
+      box-shadow: 0 2px 8px var(--glow-color, rgba(245, 158, 11, 0.3));
+    }
+    
+    .btn-warning:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--glow-color, rgba(245, 158, 11, 0.4));
+    }
+
+    /* Icon Button */
+    .btn-icon {
+      padding: 8px 12px;
+      font-size: 18px;
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      line-height: 1;
+    }
+    
+    .btn-icon:hover:not(:disabled) {
+      background: var(--bg-hover);
+      transform: scale(1.05);
+    }
+
+    /* Close Button */
+    .btn-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--accent-danger);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-close:hover {
+      color: var(--accent-danger-hover);
+      background: var(--bg-hover);
+    }
+
+    /* Loading Indicator */
+    .loading-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      background: var(--bg-panel);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 14px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .loading-indicator::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Tip Box */
+    .tip-box {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%);
+      padding: 14px 16px;
+      padding-right: 40px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+      position: relative;
+      line-height: 1.6;
+    }
+    
+    .tip-box strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Dialog Styling */
+    dialog {
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      background: var(--bg-panel);
+      color: var(--text-main);
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+      margin: auto;
+    }
+    
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Theme Selector Grid */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .theme-option {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-input);
+    }
+
+    .theme-option:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+
+    .theme-option.active {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--focus-color);
+    }
+
+    .theme-colors {
+      display: flex;
+      gap: 4px;
+    }
+
+    .theme-color-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .theme-name {
+      font-size: 12px;
+      color: var(--text-main);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 640px) {
+      #mainCtn {
+        padding: 12px;
+      }
+      
+      .memory-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      #editorActionsCtn {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+      
+      #editorActionsCtn > * {
+        width: 100% !important;
+      }
+      
+      button {
+        padding: 12px 16px;
+        font-size: 15px;
+      }
+      
+      .overlay-panel {
+        padding: 16px;
+      }
+      
+      .memory-grid-btn {
+        min-height: 140px;
+      }
+      
+      .theme-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .color-picker-row {
+        flex-wrap: wrap;
+      }
+      
+      .color-picker-label {
+        flex: 1 1 100%;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Main Story Container -->
+<div id="mainCtn">
+  <div id="storyColumnEl" style="display: flex; flex-direction: column; gap: 20px;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+      <h1 style="margin: 0; text-align: left; color: var(--text-main); font-size: clamp(1.25rem, 4vw, 1.75rem); font-weight: 700; flex-shrink: 1; min-width: 0;">Ultimate Story Generator</h1>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <button id="commentsBtn" onclick="toggleComments()" class="btn-icon" title="Comments">💬</button>
+        <button id="howItWorksBtn" onclick="openHowItWorks()" class="btn-icon" title="How it Works">❓</button>
+        <button id="toggleMemoryBtn" onclick="toggleMemory()" class="btn-secondary" style="white-space: nowrap;">📚 Toolkit</button>
+      </div>
+    </div>
+
+    <!-- Tip Box -->
+    <div class="tip-box">
+      <button onclick="this.parentElement.style.display='none'" class="btn-close" title="Hide this tip">&times;</button>
+      <strong>💡 Tip:</strong> Click on the <strong>?</strong> button at the top of the page to learn how this work. Open up your <strong>toolkit</strong> to to explore useful features.
+    </div>
+    
+    <!-- Generation Input Area -->
+    <div style="display: flex; gap: 12px; align-items: stretch;">
+      <textarea id="topicInput" placeholder="What happens next in your story?" style="flex-grow: 1; min-width: 0; height: 60px; resize: vertical;"></textarea>
+      <button onclick="topicInput.value = ''" class="btn-secondary" style="white-space: nowrap;">Clear</button>
+    </div>
+    
+    <!-- Controls -->
+    <div id="lengthControlsContainer" style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: nowrap; background: var(--bg-panel); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: nowrap; flex: 1;">
+        <input id="lengthNumberInput" type="number" min="1" value="3" class="length-input" style="width: 60px; text-align: center;" onchange="updateLength()">
+        
+        <select id="lengthUnitInput" onchange="updateLength()" style="min-width: 100px;">
+          <option value="paragraphs">Paragraphs</option>
+          <option value="sentences">Sentences</option>
+        </select>
+        
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-main); cursor: pointer; user-select: none; white-space: nowrap;">
+          <input id="lengthUnlimitedCheck" type="checkbox" onchange="updateLength()" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-primary);">
+          Unlimited
+        </label>
+      </div>
+      <button id="generateBtn" onclick="generate()" class="btn-primary" style="min-width: 120px; font-weight: 600;">✨ Generate</button>
+    </div>
+    
+    <!-- Status Indicators -->
+    <div id="loadingEl" class="loading-indicator" hidden>Generating story...</div>
+    <div id="analyzingEl" class="loading-indicator" hidden>Updating memory with new characters and settings...</div>
+    
+    <!-- Main Editor -->
+    <textarea id="storyOutputEl" style="width: 100%; min-height: 350px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 16px; line-height: 1.7; resize: vertical; white-space: pre-wrap; background-color: var(--bg-input); color: var(--text-main); font-family: 'Georgia', serif;" placeholder="Your story will appear here..."></textarea>
+    
+    <!-- Editor Actions -->
+    <div id="editorActionsCtn" style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--bg-panel); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1;">
+        <button id="undoBtn" onclick="undo()" class="btn-danger">↩ Undo</button>
+        <button id="updateMetadataBtn" onclick="updateMetadata()" title="Update memory with current story details" class="btn-secondary">📝 Update Memory</button>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <!-- Removed "newStoryBtn" per user instruction -->
+        <button id="finishChapterBtn" onclick="finishChapter()" class="btn-success" style="min-width: 140px; font-weight: 600;">✓ Finish Chapter</button>
+      </div>
+    </div>
+    
+    <!-- Tip Box -->
+    <div class="tip-box">
+      <button onclick="this.parentElement.style.display='none'" class="btn-close" title="Hide this tip">&times;</button>
+      <strong>💡 Tip:</strong> "Undo" removes the last text generated. "Update Memory" analyzes the text for new characters/settings and adds them to the Memory manually. "Finish Chapter" archives the text and automatically updates the memory.
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+    <div style="font-size: 13px; color: var(--text-muted); font-style: italic; margin-top: 8px; text-align: center; line-height: 1.7;">
+        Thanks for using my generator. <br> This page uses your browser's 'localStorage' to remember your story even after you refresh the page. To remove the data, use the 'Clear & Reset' option in the Toolkit. Your stories are not stored on a server. They're stored privately in your browser/device storage only.
+    </div>
+  </div>
+</div>
+
+<!-- Comments Overlay -->
+<div id="commentsColumnEl" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Comments</h2>
+    <button onclick="toggleComments()" class="btn-secondary">Close</button>
+  </div>
+
+  <div class="tip-box">
+    <strong>💡 Tip:</strong> Leave feedback, share your stories, or chat with other users using this generator!
+  </div>
+
+  <div id="commentsCtn" style="width: 100%; height: calc(100vh - 200px); margin-top: 20px;"></div>
+</div>
+
+<!-- Memory Hub Overlay -->
+<div id="sidebarColumnEl" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Toolkit</h2>
+    <button onclick="toggleMemory()" class="btn-secondary">Close Hub</button>
+  </div>
+
+  <div class="tip-box">
+    <button onclick="this.parentElement.style.display='none'" class="btn-close" title="Hide this tip">&times;</button>
+    <strong>💡 Tip:</strong> Select a category below to view and edit details. Double-check and make edits to the characters, locations, and summaries after every finished chapter.
+  </div>
+
+  <div class="memory-grid">
+    <div class="memory-grid-btn" onclick="openMemoryPanel('memoryLorePanel')">
+      <h3>📜 Lore & Ideas</h3>
+      <p>Background, history, themes, and story concepts.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openMemoryPanel('memoryCharactersPanel')">
+      <h3>👥 Characters</h3>
+      <p>Manage your cast and character profiles.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openMemoryPanel('memorySettingsPanel')">
+      <h3>🏰 Locations</h3>
+      <p>World settings, places, and environments.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openMemoryPanel('memorySummariesPanel')">
+      <h3>📝 Summaries</h3>
+      <p>Review and edit chapter summaries or past events.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openOverlayById('chaptersViewPanel')">
+      <h3>📖 Finished Chapters</h3>
+      <p>Read and manage finished story chapters.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openMemoryPanel('memoryPromptingPanel')">
+      <h3>⚙️ Prompting</h3>
+      <p>Advanced options, negative prompting, and banned words.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openOverlayById('charGenColumnEl')">
+      <h3>🧞 Character Generator</h3>
+      <p>Create detailed character profiles.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openOverlayById('assistantColumnEl')">
+      <h3>🤖 AI Assistant</h3>
+      <p>Brainstorm, get advice, or ask for help.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openOverlayById('uiSettingsPanel')">
+      <h3>🎨 UI Settings</h3>
+      <p>Customize colors and upload backgrounds.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openOverlayById('saveExportColumnEl')">
+      <h3>💾 Save & Export</h3>
+      <p>Download your story or backup data.</p>
+    </div>
+    <div class="memory-grid-btn" onclick="openOverlayById('clearResetColumnEl')">
+      <h3>🗑️ Clear & Reset</h3>
+      <p>Manage or clear story data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Finished Chapters Panel -->
+<div id="chaptersViewPanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Finished Chapters</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+  
+  <div id="chaptersContainerEl" style="display: flex; flex-direction: column; gap: 20px; margin-top: 10px;"></div>
+</div>
+
+<!-- UI Settings Panel -->
+<div id="uiSettingsPanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">UI Settings</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Button Themes</h3>
+    <p>Choose a color theme that sets the accent, button colors, and overall feel of the generator.</p>
+    <div id="themeGrid" class="theme-grid"></div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Background Themes</h3>
+    <p>Choose a color theme for the page background, panels, and inputs.</p>
+    <div id="bgThemeGrid" class="theme-grid"></div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Font Settings</h3>
+    <p>Choose a font style and customize the text colors for the generator.</p>
+    
+    <!-- Font Family Dropdown -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-main);">Font Family</label>
+      <select id="fontFamilySelect" onchange="updateFontFamily(this.value)" style="width: 100%;">
+        <option value="">Select a font...</option>
+      </select>
+    </div>
+    
+    <!-- Font Color Pickers -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 12px; font-weight: 500; color: var(--text-main);">Font Colors</label>
+      
+      <div class="color-picker-row">
+        <span class="color-picker-label">Main Text Color</span>
+        <div class="color-picker-input-wrapper">
+          <input type="color" id="fontMainColorInput" value="#f0f0f0" onchange="updateFontColor('main', this.value)">
+        </div>
+        <span id="fontMainColorValue" class="color-picker-value">#f0f0f0</span>
+      </div>
+      
+      <div class="color-picker-row">
+        <span class="color-picker-label">Muted Text Color</span>
+        <div class="color-picker-input-wrapper">
+          <input type="color" id="fontMutedColorInput" value="#a0a0a0" onchange="updateFontColor('muted', this.value)">
+        </div>
+        <span id="fontMutedColorValue" class="color-picker-value">#a0a0a0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Custom Background</h3>
+    <p>Upload an image to use as the page background. The main content will become semi-transparent when a background is set.</p>
+    <input type="file" id="bgImageInput" accept="image/*" onchange="handleBgUpload(this)" style="margin-bottom: 12px;">
+    
+    <div id="bgPreviewContainer" style="display: none; margin-bottom: 12px;">
+      <img id="bgPreviewImg" src="" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+    </div>
+
+    <button id="removeBgBtn" onclick="removeCustomBackground()" class="btn-danger" hidden>Remove Background</button>
+  </div>
+</div>
+
+<!-- Memory Sub-Panel: Lore & Ideas -->
+<div id="memoryLorePanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Lore & Ideas</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Background/History</h3>
+    <textarea id="plotInputEl" placeholder="Describe the world's history, backstory, lore, past events, or the foundation of your story..." style="height: 120px; resize: vertical;"></textarea>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">Tip: Establish the historical context, world-building elements, lore, or backstory that informs the narrative.</div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Themes</h3>
+    <textarea id="themesInputEl" placeholder="List themes or genres (e.g., redemption, cyberpunk, horror, coming-of-age)..." style="height: 100px; resize: vertical;"></textarea>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">Tip: Establish the mood, tone, and underlying message of the story.</div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Story Ideas</h3>
+    <textarea id="ideasInputEl" placeholder="Random ideas, concepts, or specific scenes you want to include..." style="height: 100px; resize: vertical;"></textarea>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">Tip: Brainstorming area for loose concepts or cool moments.</div>
+  </div>
+</div>
+
+<!-- Memory Sub-Panel: Characters -->
+<div id="memoryCharactersPanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Characters</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <input id="newCharNameInput" type="text" placeholder="Character Name" style="margin-bottom: 10px;">
+    <textarea id="newCharDescInput" placeholder="Character Description" style="height: 80px; margin-bottom: 10px; resize: vertical;"></textarea>
+    <button onclick="addCharacter()" class="btn-primary" style="width: 100%;">+ Add Character</button>
+  </div>
+  <div id="charactersListEl" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No characters identified yet.</div>
+  </div>
+</div>
+
+<!-- Memory Sub-Panel: Locations -->
+<div id="memorySettingsPanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Locations</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <input id="newSettingNameInput" type="text" placeholder="Location Name" style="margin-bottom: 10px;">
+    <textarea id="newSettingDescInput" placeholder="Location Description" style="height: 80px; margin-bottom: 10px; resize: vertical;"></textarea>
+    <button onclick="addSetting()" class="btn-success" style="width: 100%;">+ Add Setting</button>
+  </div>
+  <div id="settingsListEl" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No settings identified yet.</div>
+  </div>
+</div>
+
+<!-- Memory Sub-Panel: Summaries -->
+<div id="memorySummariesPanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Chapter Summaries</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+  <div class="tip-box" style="margin-bottom: 20px;">Tip: This section is what the AI uses to remember events from past chapters.</div>
+  <div id="summariesListEl" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No chapters finished yet.</div>
+  </div>
+</div>
+
+<!-- Memory Sub-Panel: Prompting -->
+<div id="memoryPromptingPanel" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Prompting Options</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <button onclick="this.parentElement.style.display='none'" class="btn-close" title="Hide this tip">&times;</button>
+    <strong>💡 Tip:</strong> Configure how the AI writes your story here. You can change the voice, forbid specific words, or completely rewrite the AI's core instructions.
+  </div>
+
+  <div class="clear-section">
+    <h3>AI Voice / Tone</h3>
+    <select id="voiceInputEl" style="margin-bottom: 10px;">
+      <option value="Default">Default (Balanced)</option>
+      <option value="Professional">Professional (Objective, formal)</option>
+      <option value="Casual">Casual (Relaxed, conversational)</option>
+      <option value="3rd Grade Level">3rd Grade Level (Simple language)</option>
+      <option value="Academic">Academic (Scholarly, dense)</option>
+      <option value="Noir">Noir (Gritty, cynical, 1940s detective)</option>
+      <option value="Shakespearean">Shakespearean (Old English, poetic)</option>
+      <option value="Technical">Technical (Manual-like, precise)</option>
+      <option value="Flowery">Flowery (Descriptive, purple prose)</option>
+    </select>
+    <div style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">Tip: Selecting an option here will instruct the AI to adopt that specific writing style.</div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Banned Words & Phrases</h3>
+    <textarea id="bannedWordsInputEl" placeholder="List words or phrases you explicitly want to forbid (e.g., 'very', 'suddenly', 'literally')..." style="height: 100px; resize: vertical;"></textarea>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">Tip: The AI will try its best not to use any of these words in the output.</div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Negative Prompts (Content)</h3>
+    <textarea id="negativePromptsInputEl" placeholder="List things you explicitly DON'T want in the story (e.g., violence, specific tropes, character types)..." style="height: 120px; resize: vertical;"></textarea>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">Tip: The AI will be explicitly instructed to avoid these themes and elements. Three of my favorite inclusions here are: idioms, metaphors, similes.</div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Edit Main AI Prompt</h3>
+    <textarea id="systemPromptInputEl" placeholder="Enter custom instructions for the AI (e.g., 'Always write in second person perspective', 'Include inner monologues')..." style="height: 140px; resize: vertical;"></textarea>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.6;">Tip: This text will be prepended to every generation request, effectively rewriting the "system prompt" for the main story AI. Leave blank to use defaults.</div>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button onclick="resetPromptingOptions()" class="btn-secondary">Reset Prompting Options</button>
+  </div>
+</div>
+
+<!-- Clear & Reset Overlay -->
+<div id="clearResetColumnEl" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Clear & Reset</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <div style="font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+      <strong>Tip:</strong> Use the options below to clear specific parts of your generator, or use "Start Over" at the bottom to clear everything.
+    </div>
+  </div>
+
+  <div class="clear-section">
+    <h3>Clear Story Text</h3>
+    <p>Clears only the current story text in the main editor. Does not affect memory, characters, or chapter summaries.</p>
+    <button onclick="clearStoryText()" class="btn-secondary">Clear Story Text</button>
+  </div>
+
+  <div class="clear-section">
+    <h3>Clear Finished Chapters</h3>
+    <p>Removes all finished chapters from the main view. Does not affect current story text, memory, or chapter summaries.</p>
+    <button onclick="clearFinishedChapters()" class="btn-secondary">Clear Finished Chapters</button>
+  </div>
+
+  <div class="clear-section">
+    <h3>Clear Characters</h3>
+    <p>Removes all characters from your memory. This cannot be undone.</p>
+    <button onclick="clearCharacters()" class="btn-secondary">Clear All Characters</button>
+  </div>
+
+  <div class="clear-section">
+    <h3>Clear Locations</h3>
+    <p>Removes all locations/settings from your memory. This cannot be undone.</p>
+    <button onclick="clearSettings()" class="btn-secondary">Clear All Locations</button>
+  </div>
+
+  <div class="clear-section">
+    <h3>Clear Chapter Summaries</h3>
+    <p>Removes all chapter summaries and finished chapters. This cannot be undone.</p>
+    <button onclick="clearChapters()" class="btn-secondary">Clear All Chapters</button>
+  </div>
+
+  <div class="clear-section">
+    <h3>Clear Memory (Lore/Themes)</h3>
+    <p>Clears all background/history, themes, and ideas. Does not affect characters, locations, or negative prompts.</p>
+    <button onclick="clearMemory()" class="btn-secondary">Clear Memory</button>
+  </div>
+
+  <div class="clear-section" style="border-color: var(--accent-danger); background: linear-gradient(135deg, var(--bg-panel) 0%, rgba(239, 68, 68, 0.05) 100%);">
+    <h3 style="color: var(--accent-danger);">Start Over - Complete Reset</h3>
+    <p><strong>WARNING:</strong> This will delete EVERYTHING including all story text, memory (characters, settings), chapter summaries, character generator drafts, assistant history, and prompting options. This action cannot be undone.</p>
+    <button onclick="confirmStartOver()" class="btn-danger" style="font-weight: 600;">Start Over - Delete Everything</button>
+  </div>
+</div>
+
+<!-- Character Generator Overlay -->
+<div id="charGenColumnEl" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Character Generator</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <button id="charGenGenerateBtn" onclick="generateCharacter()" class="btn-primary" style="flex: 1; min-width: 160px;">Generate Character</button>
+    <button id="charGenAddBtn" onclick="addCharGenToMemory()" class="btn-success" style="flex: 1; min-width: 160px;">Save to Memory</button>
+    <button id="charGenClearBtn" onclick="clearCharGen()" class="btn-secondary">Clear</button>
+  </div>
+
+  <div class="tip-box">
+    <button onclick="this.parentElement.style.display='none'" class="btn-close" title="Hide this tip">&times;</button>
+    <strong>💡 Tip:</strong> If you have a specific character in mind, enter details below to guide the AI. Otherwise, leave blank for a completely random character based on your story memory.
+  </div>
+
+  <div class="clear-section">
+    <input id="charGenNameInput" type="text" placeholder="Character Name (Optional)" style="margin-bottom: 10px;">
+    <textarea id="charGenInfoInput" placeholder="Specific details about the character (e.g., role, personality, appearance hints)..." style="height: 100px; resize: vertical;"></textarea>
+  </div>
+
+  <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Generated Character Profile:</div>
+  <div id="charGenLoadingEl" class="loading-indicator" hidden style="margin-bottom: 10px;">Generating character profile...</div>
+  <textarea id="charGenOutputEl" style="width: 100%; height: 450px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 16px; line-height: 1.6; resize: vertical; white-space: pre-wrap; background-color: var(--bg-input); color: var(--text-main); font-family: 'Georgia', serif;" placeholder="Click 'Generate Character' to create a new character..."></textarea>
+</div>
+
+<!-- Assistant Overlay -->
+<div id="assistantColumnEl" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">AI Assistant</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <button onclick="this.parentElement.style.display='none'" class="btn-close" title="Hide this tip">&times;</button>
+    <strong>💡 Tip:</strong> Ask the AI anything about your story, writing advice, brainstorming ideas, or any other assistance you need. The assistant is designed to help authors write stories.
+  </div>
+
+  <div class="clear-section">
+    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-main); font-weight: 500;">
+      <input id="assistantIncludeMemoryCheckbox" type="checkbox" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-primary);">
+      Include memory context (characters, settings, background/history, and chapter summaries)
+    </label>
+  </div>
+
+  <div style="margin-bottom: 20px;">
+    <textarea id="assistantInputEl" placeholder="Ask the AI assistant anything about your story or writing..." style="height: 120px; resize: vertical; margin-bottom: 12px;"></textarea>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button id="assistantGenerateBtn" onclick="generateAssistantResponse()" class="btn-primary" style="flex: 1; min-width: 150px;">Ask Assistant</button>
+      <button onclick="clearAssistantHistory()" class="btn-secondary">Clear History</button>
+    </div>
+  </div>
+
+  <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Conversation History:</div>
+  <div id="assistantLoadingEl" class="loading-indicator" hidden style="margin-bottom: 10px;">Thinking...</div>
+  <textarea id="assistantOutputEl" style="width: 100%; height: 450px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 15px; line-height: 1.6; resize: vertical; white-space: pre-wrap; background-color: var(--bg-input); color: var(--text-main);" placeholder="The conversation history will appear here..."></textarea>
+</div>
+
+<!-- Save & Export Overlay -->
+<div id="saveExportColumnEl" class="overlay-panel">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+    <h2 style="font-size: 24px; margin: 0; color: var(--text-main); font-weight: 700;">Save & Export</h2>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeMemorySubPanel()" class="btn-secondary">Back</button>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 32px;">
+    <h3 style="font-size: 20px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-primary); color: var(--text-main); font-weight: 600;">Save Story</h3>
+    <div class="clear-section">
+      <p style="color: var(--text-muted); margin-bottom: 16px; line-height: 1.7;">Download your finished chapters in various formats.</p>
+      
+      <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+        <label for="exportFormatSelect" style="color: var(--text-main); font-weight: 500;">Format:</label>
+        <select id="exportFormatSelect" style="min-width: 150px;">
+          <option value="txt">Plain Text (.txt)</option>
+          <option value="md">Markdown (.md)</option>
+          <option value="html">Web Page (.html)</option>
+        </select>
+      </div>
+
+      <button onclick="saveStory()" class="btn-primary" style="width: 100%;">Download Story</button>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 32px;">
+    <h3 style="font-size: 20px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #06b6d4; color: var(--text-main); font-weight: 600;">Full Backup & Restore</h3>
+    <div class="clear-section">
+      <p style="color: var(--text-muted); margin-bottom: 20px; line-height: 1.7;">Backup your entire story state (memory, chapters, current text, drafts, settings) to a file, or restore from a previous backup.</p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+        <button onclick="exportFullStory()" class="btn-primary" style="flex: 1; min-width: 180px;">Backup Story (.json)</button>
+        <button onclick="document.getElementById('fullStoryFileInput').click()" class="btn-success" style="flex: 1; min-width: 180px;">Restore Story (.json)</button>
+        <input type="file" id="fullStoryFileInput" accept=".json" onchange="importFullStory(this)" style="display: none;">
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 32px;">
+    <h3 style="font-size: 20px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #8b5cf6; color: var(--text-main); font-weight: 600;">Local Storage</h3>
+    <div class="clear-section">
+      <p style="color: var(--text-muted); margin-bottom: 20px; line-height: 1.7;">Save your story directly to your browser's local storage for quick access without downloading files. <b>THIS DATA CAN BE LOST! Use the above backup button to save permanently.</b></p>
+      <button onclick="saveLocally()" class="btn-secondary" style="width: 100%; margin-bottom: 20px;">Save Current Story Locally</button>
+      
+      <div id="savedStoriesListEl" style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No locally saved stories found.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How It Works Dialog -->
+<dialog id="howItWorksDialogEl">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h3 style="margin: 0; color: var(--text-main); font-size: 20px; font-weight: 700;">How it works</h3>
+    <button onclick="closeHowItWorks()" style="background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 4px; line-height: 1;">&times;</button>
+  </div>
+  <div style="font-size: 14px; color: var(--text-muted); line-height: 1.7; overflow-y: auto; max-height: 65vh;">
+    <strong>1. Setup Memory:</strong><br>
+    Click <strong>Toolkit</strong> to open the hub. Define your world's DNA: Background/History (lore), Themes, and Story Ideas. You can also manually add Characters and Locations here.
+
+    <br><br>
+
+    <strong>2. Configure Prompting:</strong><br>
+    Within the <strong>Toolkit</strong> hub, click <strong>Prompting</strong> to control the AI's writing style. Change the voice (e.g., to "Noir" or "3rd Grade"), add banned words to avoid repetition, set negative constraints, or completely rewrite the system instructions.
+
+    <br><br>
+
+    <strong>3. Write & Generate:</strong><br>
+    Type a prompt for what happens next (e.g., "The hero enters the dark cave") in the main input box. Select the desired length (number of paragraphs/sentences or unlimited) and click <strong>Generate</strong>. The AI will write the story text into the main editor. You can edit this text directly at any time.
+
+    <br><br>
+
+    <strong>4. Finish Chapter:</strong><br>
+    When a scene is complete, click <strong>Finish Chapter</strong>. This does three things:
+    1. Moves the text to the "Finished Chapters" list in the Toolkit.
+    2. Creates a summary for the AI to remember later.
+    3. <strong>Automatically scans</strong> the text to find new Characters or Locations and adds them to your Memory for you.
+
+    <br><br>
+
+    <strong>5. Useful Tools:</strong><br>
+    - <strong>Character Generator:</strong> Creates detailed character profiles. You can save these directly to Memory.<br>
+    - <strong>Assistant:</strong> A dedicated AI chat for brainstorming, plot advice, or writing help.<br>
+    - <strong>Update Memory:</strong> A manual button to scan the current text for new details without finishing a chapter.<br>
+    - <strong>Save/Export:</strong> Download your finished story or create a full project backup (.json).<br>
+    - <strong>Clear/Reset:</strong> Use this option in the Toolkit hub to clear specific sections or completely start over.
+
+    <br><br>
+
+    <strong>Feedback:</strong> Click on the chat bubble at the top of the page to open the comment section. Feel free to leave feedback, ideas, or tips to help other users improve their own stories.
+
+    <br><br>
+    <strong>TL;DR:</strong> This tool keeps your story consistent by remembering details in Memory. Use the Prompting settings (found inside the Toolkit hub) to control the "voice", then write, generate, and use "Finish Chapter" to archive your work and update the story's memory automatically.
+  </div>
+  <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+    <button onclick="closeHowItWorks()" class="btn-secondary">Close</button>
+  </div>
+</dialog>
+
+<!-- Start Over Confirmation Dialog -->
+<dialog id="startOverDialogEl">
+  <h3 style="margin-top: 0; color: var(--text-main); font-size: 20px; font-weight: 700;">Start Over?</h3>
+  <p style="color: var(--text-main); line-height: 1.7;">This will delete all current story text, memory (characters, settings), chapter summaries, prompting options, and assistant history. This action cannot be undone.</p>
+  <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+    <button onclick="cancelStartOver()" class="btn-secondary">Cancel</button>
+    <button onclick="performStartOver()" class="btn-danger">Yes, Delete Everything</button>
+  </div>
+</dialog>
+
+<!-- Delete Chapter Confirmation Dialog -->
+<dialog id="deleteChapterDialogEl">
+  <h3 style="margin-top: 0; color: var(--text-main); font-size: 20px; font-weight: 700;">Delete Chapter?</h3>
+  <p style="color: var(--text-main); line-height: 1.7;">This will delete both the finished chapter <strong>and</strong> its corresponding chapter summary. This action cannot be undone.</p>
+  <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+    <button onclick="cancelDeleteChapter()" class="btn-secondary">Cancel</button>
+    <button onclick="performDeleteChapter()" class="btn-danger">Delete Both</button>
+  </div>
+</dialog>
+
+<script>
+  // ==========================================
+  // Theme Definitions
+  // ==========================================
+  
+  // Button Themes (Accents, Buttons, Actions)
+  const themes = {
+    default: {
+      name: "Indigo Dreams",
+      accent: "#6366f1",
+      accentHover: "#4f46e5",
+      success: "#10b981",
+      successHover: "#059669",
+      danger: "#ef4444",
+      dangerHover: "#dc2626",
+      warning: "#f59e0b",
+      warningHover: "#d97706"
+    },
+    deepOcean: {
+      name: "Deep Ocean",
+      accent: "#0ea5e9",
+      accentHover: "#0284c7",
+      success: "#22c55e",
+      successHover: "#16a34a",
+      danger: "#0f766e",
+      dangerHover: "#115e59",
+      warning: "#14b8a6",
+      warningHover: "#0d9488"
+    },
+    mysticGarden: {
+      name: "Mystic Garden",
+      accent: "#8b5cf6",
+      accentHover: "#7c3aed",
+      success: "#22c55e",
+      successHover: "#16a34a",
+      danger: "#06b6d4",
+      dangerHover: "#0891b2",
+      warning: "#14b8a6",
+      warningHover: "#0d9488"
+    },
+    serenity: {
+      name: "Serenity",
+      accent: "#60a5fa",
+      accentHover: "#3b82f6",
+      success: "#6ee7b7",
+      successHover: "#34d399",
+      danger: "#93c5fd",
+      dangerHover: "#60a5fa",
+      warning: "#7dd3fc",
+      warningHover: "#38bdf8"
+    },
+    enchantedGrove: {
+      name: "Enchanted Grove",
+      accent: "#16a34a",
+      accentHover: "#15803d",
+      success: "#84cc16",
+      successHover: "#65a30d",
+      danger: "#15803d",
+      dangerHover: "#166534",
+      warning: "#65a30d",
+      warningHover: "#4d7c0f"
+    },
+    pastelDreams: {
+      name: "Pastel Dreams",
+      accent: "#f9a8d4",
+      accentHover: "#f472b6",
+      success: "#a5f3fc",
+      successHover: "#67e8f9",
+      danger: "#fbcfe8",
+      dangerHover: "#f9a8d4",
+      warning: "#bbf7d0",
+      warningHover: "#86efac"
+    },
+    neonNights: {
+      name: "Neon Nights",
+      accent: "#ff00ff",
+      accentHover: "#cc00cc",
+      success: "#00ff00",
+      successHover: "#00cc00",
+      danger: "#ff006e",
+      dangerHover: "#cc0058",
+      warning: "#ffff00",
+      warningHover: "#cccc00"
+    },
+    earthyGround: {
+      name: "Earthy Ground",
+      accent: "#92400e",
+      accentHover: "#78350f",
+      success: "#65a30d",
+      successHover: "#4d7c0f",
+      danger: "#9f1239",
+      dangerHover: "#881337",
+      warning: "#b45309",
+      warningHover: "#92400e"
+    },
+    oceanBreeze: {
+      name: "Ocean Breeze",
+      accent: "#0ea5e9",
+      accentHover: "#0284c7",
+      success: "#06b6d4",
+      successHover: "#0891b2",
+      danger: "#0284c7",
+      dangerHover: "#0369a1",
+      warning: "#22d3ee",
+      warningHover: "#06b6d4"
+    },
+    midnightSky: {
+      name: "Midnight Sky",
+      accent: "#3b82f6",
+      accentHover: "#2563eb",
+      success: "#8b5cf6",
+      successHover: "#7c3aed",
+      danger: "#6366f1",
+      dangerHover: "#4f46e5",
+      warning: "#a78bfa",
+      warningHover: "#8b5cf6"
+    },
+    twilight: {
+      name: "Twilight",
+      accent: "#8b5cf6",
+      accentHover: "#7c3aed",
+      success: "#6366f1",
+      successHover: "#4f46e5",
+      danger: "#ec4899",
+      dangerHover: "#db2777",
+      warning: "#f472b6",
+      warningHover: "#ec4899"
+    },
+    terracottaWarmth: {
+      name: "Terracotta Warmth",
+      accent: "#c2410c",
+      accentHover: "#9a3412",
+      success: "#d97706",
+      successHover: "#b45309",
+      danger: "#be123c",
+      dangerHover: "#9f1239",
+      warning: "#ea580c",
+      warningHover: "#c2410c"
+    },
+    amberSunset: {
+      name: "Amber Sunset",
+      accent: "#f59e0b",
+      accentHover: "#d97706",
+      success: "#fbbf24",
+      successHover: "#f59e0b",
+      danger: "#f97316",
+      dangerHover: "#ea580c",
+      warning: "#fcd34d",
+      warningHover: "#fbbf24"
+    },
+    goldenFields: {
+      name: "Golden Fields",
+      accent: "#f4d35e",
+      accentHover: "#c9a83f",
+      success: "#ee964b",
+      successHover: "#be763c",
+      danger: "#0d3b66",
+      dangerHover: "#082647",
+      warning: "#faf0ca",
+      warningHover: "#e0d5b0"
+    },
+    candySkies: {
+      name: "Candy Skies",
+      accent: "#ff70a6",
+      accentHover: "#cc5985",
+      success: "#ffd670",
+      successHover: "#ccab5a",
+      danger: "#ff9770",
+      dangerHover: "#cc795a",
+      warning: "#70d6ff",
+      warningHover: "#5aabcc"
+    },
+    pastelForest: {
+      name: "Pastel Forest",
+      accent: "#f19c79",
+      accentHover: "#c17d61",
+      success: "#d4e09b",
+      successHover: "#a9b37c",
+      danger: "#cbdfbd",
+      dangerHover: "#a2b297",
+      warning: "#f6f4d2",
+      warningHover: "#c5c3a8"
+    },
+    darkestNight: {
+      name: "Darkest Night",
+      accent: "#403f4c",
+      accentHover: "#33323d",
+      success: "#2c2b3c",
+      successHover: "#222230",
+      danger: "#1b2432",
+      dangerHover: "#161b28",
+      warning: "#121420",
+      warningHover: "#0e1019"
+    },
+    blizzard: {
+      name: "Blizzard",
+      accent: "#EFF7F9",
+      accentHover: "#bfc6c7",
+      success: "#F3F3F3",
+      successHover: "#c2c2c2",
+      danger: "#E5DEDE",
+      dangerHover: "#b7b2b2",
+      warning: "#FAF0F0",
+      warningHover: "#c8c0c0"
+    }
+  };
+
+  // Background Themes (Body, Panels, Inputs, Borders)
+  const backgroundThemes = {
+    dark: {
+      name: "Dark Void",
+      bgBody: "#0f0f0f",
+      bgPanel: "#1a1a1a",
+      bgInput: "#242424",
+      bgHover: "#2f2f2f",
+      borderColor: "#333",
+      borderLight: "#2a2a2a",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.3)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.4)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.5)",
+      isLight: false
+    },
+    light: {
+      name: "Clean Paper",
+      bgBody: "#fafafa",
+      bgPanel: "#ffffff",
+      bgInput: "#f5f5f5",
+      bgHover: "#e8e8e8",
+      borderColor: "#e0e0e0",
+      borderLight: "#f0f0f0",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.1)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.1)",
+      isLight: true
+    },
+    midnightBlue: {
+      name: "Midnight Ocean",
+      bgBody: "#0f172a",
+      bgPanel: "#1e293b",
+      bgInput: "#334155",
+      bgHover: "#475569",
+      borderColor: "#334155",
+      borderLight: "#1e293b",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.4)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.5)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.6)",
+      isLight: false
+    },
+    forestGreen: {
+      name: "Deep Forest",
+      bgBody: "#052e16",
+      bgPanel: "#064e3b",
+      bgInput: "#065f46",
+      bgHover: "#047857",
+      borderColor: "#065f46",
+      borderLight: "#064e3b",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.4)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.5)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.6)",
+      isLight: false
+    },
+    warmPaper: {
+      name: "Warm Parchment",
+      bgBody: "#fdfbf7",
+      bgPanel: "#fdf6e3",
+      bgInput: "#eee8d5",
+      bgHover: "#fdf6e3",
+      borderColor: "#d3cbb8",
+      borderLight: "#eee8d5",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.1)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.1)",
+      isLight: true
+    },
+    slate: {
+      name: "Slate Grey",
+      bgBody: "#212529",
+      bgPanel: "#343a40",
+      bgInput: "#495057",
+      bgHover: "#6c757d",
+      borderColor: "#495057",
+      borderLight: "#343a40",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.3)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.4)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.5)",
+      isLight: false
+    },
+    goldenHour: {
+      name: "Golden Hour",
+      bgBody: "#fffbeb",
+      bgPanel: "#fef3c7",
+      bgInput: "#fde68a",
+      bgHover: "#fcd34d",
+      borderColor: "#fbbf24",
+      borderLight: "#fde68a",
+      shadowSm: "0 1px 2px rgba(120, 53, 15, 0.1)",
+      shadowMd: "0 4px 6px rgba(120, 53, 15, 0.15)",
+      shadowLg: "0 10px 15px rgba(120, 53, 15, 0.2)",
+      isLight: true
+    },
+    emberGlow: {
+      name: "Ember Glow",
+      bgBody: "#1c1917",
+      bgPanel: "#292524",
+      bgInput: "#44403c",
+      bgHover: "#57534e",
+      borderColor: "#44403c",
+      borderLight: "#292524",
+      shadowSm: "0 1px 2px rgba(0, 0, 0, 0.4)",
+      shadowMd: "0 4px 6px rgba(0, 0, 0, 0.5)",
+      shadowLg: "0 10px 15px rgba(0, 0, 0, 0.6)",
+      isLight: false
+    }
+  };
+
+  // Font Themes (Font Family only - colors are now separate)
+  const fontThemes = {
+    default: {
+      name: "Modern Sans",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    },
+    serif: {
+      name: "Elegant Serif",
+      fontFamily: "'Georgia', 'Times New Roman', Times, serif"
+    },
+    mono: {
+      name: "Monospace",
+      fontFamily: "'Courier New', Courier, monospace"
+    },
+    handwriting: {
+      name: "Handwriting",
+      fontFamily: "'Comic Sans MS', 'Chalkboard SE', cursive"
+    },
+    literary: {
+      name: "Literary Serif",
+      fontFamily: "'Georgia', serif"
+    },
+    bookish: {
+      name: "Classic Book",
+      fontFamily: "'Palatino Linotype', 'Book Antiqua', Palatino, serif"
+    },
+    typewriter: {
+      name: "Typewriter",
+      fontFamily: "'Courier New', Courier, monospace"
+    },
+    fantasy: {
+      name: "Fantasy",
+      fontFamily: "'Times New Roman', Times, serif"
+    },
+    gothic: {
+      name: "Gothic",
+      fontFamily: "'Old English Text MT', 'MedievalSharp', serif"
+    },
+    celtic: {
+      name: "Celtic",
+      fontFamily: "'Uncial Antiqua', fantasy"
+    },
+    fairyTale: {
+      name: "Fairy Tale",
+      fontFamily: "'Wendy One', cursive"
+    },
+    heroic: {
+      name: "Heroic",
+      fontFamily: "'Cinzel Decorative', serif"
+    },
+    scifi: {
+      name: "Sci-Fi",
+      fontFamily: "'Orbitron', sans-serif"
+    },
+    horror: {
+      name: "Horror",
+      fontFamily: "'Creepster', cursive"
+    }
+  };
+
+  // ==========================================
+  // Helper Functions
+  // ==========================================
+
+  // Helper: Convert hex to rgba for focus color
+  function hexToRgba(hex, alpha) {
+    let c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+      c= hex.substring(1).split('');
+      if(c.length== 3){
+        c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+      }
+      c= '0x'+c.join('');
+      return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+    }
+    return hex; // fallback
+  }
+
+  // Helper: Update theme reactive colors (Backgrounds, Inputs, Borders)
+  function updateThemeColors() {
+    let hasCustomBg = document.body.classList.contains("has-custom-bg");
+
+    if (hasCustomBg) {
+      // Custom BG Mode
+      // Make body background transparent so the image shows
+      document.body.style.setProperty('--bg-body', 'transparent');
+      
+      // Panels/inputs stay opaque via --bg-panel which is not affected
+      document.body.classList.add('has-custom-bg');
+    } else {
+      // No Custom BG Mode
+      // Remove all overrides to use the active background theme
+      document.body.style.removeProperty('--bg-body');
+      document.body.classList.remove('has-custom-bg');
+    }
+  }
+
+  // ==========================================
+  // State & Initialization
+  // ==========================================
+  
+  // Core story data
+  let characters = [];
+  let settings = [];
+  let chapterSummaries = [];
+  let currentStoryText = "";
+  
+  // Memory Inputs
+  let plot = "";
+  let themesStr = ""; // renamed to avoid conflict with themes const
+  let ideas = "";
+  let negativePrompts = "";
+  
+  // Prompting Options
+  let voice = "Default";
+  let bannedWords = "";
+  let customSystemPrompt = "";
+
+  // UI Customization Options
+  let selectedTheme = "default"; // Button Theme
+  let selectedBackgroundTheme = "dark"; // Background Theme
+  let selectedFontFamily = "default"; // Font Family (now separate from colors)
+  let customFontMainColor = "#f0f0f0"; // Custom main font color
+  let customFontMutedColor = "#a0a0a0"; // Custom muted font color
+  let customBackgroundImage = "";
+  // Changed to objects to support multiple color inputs
+  let customButtonColors = { accent: "", success: "", danger: "", warning: "" };
+  let customBgColors = { body: "", panel: "", text: "" };
+
+  // UI Settings
+  let currentLengthOption = { val: 3, unit: 'paragraphs', isUnlimited: false };
+  
+  let undoStack = [];
+  let charGenDraft = "";
+  let assistantDraft = "";
+  let shouldReturnToMemory = false;
+  
+  // Generation task tracking
+  let generationTask = null;
+
+  // Section collapse states
+  let collapsedSections = {
+    loreAndPrompting: true,
+    characters: true,
+    settings: true,
+    summaries: true
+  };
+  
+  // Tracking variables
+  let chapterToDeleteIndex = null;
+  let hasSeenTutorial = false;
+  
+  // Persistence: Simple debounce for input fields
+  let saveTimeout;
+
+  // Save the current state to persistent storage
+  async function saveState() {
+    let state = {
+      characters: characters,
+      settings: settings,
+      chapterSummaries: chapterSummaries,
+      currentStoryText: currentStoryText,
+      plot: plot,
+      themes: themesStr,
+      ideas: ideas,
+      negativePrompts: negativePrompts,
+      voice: voice,
+      bannedWords: bannedWords,
+      customSystemPrompt: customSystemPrompt,
+      selectedTheme: selectedTheme,
+      selectedBackgroundTheme: selectedBackgroundTheme,
+      selectedFontFamily: selectedFontFamily,
+      customFontMainColor: customFontMainColor,
+      customFontMutedColor: customFontMutedColor,
+      customBackgroundImage: customBackgroundImage,
+      customButtonColors: customButtonColors,
+      customBgColors: customBgColors,
+      currentLengthOption: currentLengthOption,
+      isLightMode: document.body.classList.contains("light-mode"),
+      charGenDraft: charGenDraft,
+      assistantDraft: assistantDraft,
+      collapsedSections: collapsedSections,
+      hasSeenTutorial: hasSeenTutorial
+    };
+    try {
+      await kv.storyGenerator.set("mainState", state);
+    } catch (e) {
+      console.error("Failed to save state:", e);
+    }
+  }
+
+  // Load state from persistent storage
+  async function loadState() {
+    try {
+      let state = await kv.storyGenerator.get("mainState");
+      if (state) {
+        characters = state.characters || [];
+        settings = state.settings || [];
+        chapterSummaries = state.chapterSummaries || [];
+        currentStoryText = state.currentStoryText || "";
+        
+        if (state.plotAndIdeas && !state.plot) {
+          plot = state.plotAndIdeas;
+        } else {
+          plot = state.plot || "";
+        }
+        
+        themesStr = state.themes || "";
+        ideas = state.ideas || "";
+        negativePrompts = state.negativePrompts || "";
+
+        voice = state.voice || "Default";
+        bannedWords = state.bannedWords || "";
+        customSystemPrompt = state.customSystemPrompt || "";
+
+        // UI Customization - Handle Button Themes (Old & New format)
+        if (state.customAccentColor && !state.selectedTheme && !state.customButtonColors) {
+          // Old format: convert to default theme with custom color
+          selectedTheme = "default";
+          themes.default.accent = state.customAccentColor;
+          themes.default.accentHover = adjustColorBrightness(state.customAccentColor, -20);
+        } else {
+          selectedTheme = state.selectedTheme || "default";
+        }
+        
+        // Migration for Custom Button Colors
+        if (state.customButtonColors) {
+          customButtonColors = state.customButtonColors;
+        } else if (state.customButtonColor) {
+          customButtonColors = { accent: state.customButtonColor, success: "", danger: "", warning: "" };
+        } else {
+          customButtonColors = { accent: "", success: "", danger: "", warning: "" };
+        }
+
+        // UI Customization - Handle Background Themes
+        if (state.selectedBackgroundTheme) {
+          selectedBackgroundTheme = state.selectedBackgroundTheme;
+        } else if (state.isLightMode) {
+          // Migrate old light mode toggle to new background theme system
+          selectedBackgroundTheme = "light";
+        } else {
+          selectedBackgroundTheme = "dark";
+        }
+
+        // Migration for Custom Background Colors
+        if (state.customBgColors) {
+          customBgColors = state.customBgColors;
+        } else if (state.customBgColor) {
+          customBgColors = { body: state.customBgColor, panel: "", input: "" };
+        } else {
+          customBgColors = { body: "", panel: "", input: "" };
+        }
+
+        // UI Customization - Handle Font Family (separate from colors now)
+        selectedFontFamily = state.selectedFontFamily || "default";
+        
+        // Migration for custom font colors
+        customFontMainColor = state.customFontMainColor || "#f0f0f0";
+        customFontMutedColor = state.customFontMutedColor || "#a0a0a0";
+        
+        // If old customFontColor exists, use it for main color
+        if (state.customFontColor && !state.customFontMainColor) {
+          customFontMainColor = state.customFontColor;
+        }
+        
+        customBackgroundImage = state.customBackgroundImage || "";
+        
+        if (typeof state.currentLengthOption === 'string') {
+          if (state.currentLengthOption.includes('unlimited')) {
+            currentLengthOption = { val: 3, unit: 'paragraphs', isUnlimited: true };
+          } else {
+            let parts = state.currentLengthOption.split(' ');
+            let val = parseInt(parts[0]) || 3;
+            let unit = parts.length > 1 ? parts[1].replace(/s$/, '') : 'paragraphs';
+            if (unit !== 'paragraphs' && unit !== 'sentences') unit = 'paragraphs';
+            currentLengthOption = { val: val, unit: unit, isUnlimited: false };
+          }
+        } else {
+          currentLengthOption = state.currentLengthOption || { val: 3, unit: 'paragraphs', isUnlimited: false };
+        }
+
+        charGenDraft = state.charGenDraft || "";
+        assistantDraft = state.assistantDraft || "";
+        
+        if (state.collapsedSections !== undefined) {
+          if (state.collapsedSections.plot !== undefined || state.collapsedSections.negativePrompts !== undefined) {
+            collapsedSections.loreAndPrompting = !(state.collapsedSections.plot === false || state.collapsedSections.negativePrompts === false);
+          } else {
+            collapsedSections.loreAndPrompting = state.collapsedSections.loreAndPrompting !== undefined ? state.collapsedSections.loreAndPrompting : true;
+          }
+          collapsedSections.characters = state.collapsedSections.characters !== undefined ? state.collapsedSections.characters : true;
+          collapsedSections.settings = state.collapsedSections.settings !== undefined ? state.collapsedSections.settings : true;
+          collapsedSections.summaries = state.collapsedSections.summaries !== undefined ? state.collapsedSections.summaries : true;
+        }
+
+        hasSeenTutorial = state.hasSeenTutorial || false;
+
+        storyOutputEl.value = currentStoryText;
+        plotInputEl.value = plot;
+        themesInputEl.value = themesStr;
+        ideasInputEl.value = ideas;
+        negativePromptsInputEl.value = negativePrompts;
+        
+        voiceInputEl.value = voice;
+        bannedWordsInputEl.value = bannedWords;
+        systemPromptInputEl.value = customSystemPrompt;
+        
+        lengthNumberInput.value = currentLengthOption.val;
+        lengthUnitInput.value = currentLengthOption.unit;
+        lengthUnlimitedCheck.checked = currentLengthOption.isUnlimited;
+        
+        charGenOutputEl.value = charGenDraft;
+        assistantOutputEl.value = assistantDraft;
+
+        // Apply Button Theme
+        if (selectedTheme === 'custom' && (customButtonColors.accent || customButtonColors.success || customButtonColors.danger || customButtonColors.warning)) {
+          applyCustomButtonTheme();
+        } else {
+          applyTheme(selectedTheme);
+        }
+
+        // Apply Background Theme
+        if (selectedBackgroundTheme === 'custom' && (customBgColors.body || customBgColors.panel || customBgColors.text)) {
+          applyCustomBackgroundTheme();
+        } else {
+          applyBackgroundTheme(selectedBackgroundTheme);
+        }
+
+        // Apply Font Settings (Family and Colors)
+        applyFontSettings();
+
+        if (customBackgroundImage) {
+          document.body.style.backgroundImage = `url(${customBackgroundImage})`;
+          document.body.classList.add('has-custom-bg');
+          bgPreviewImg.src = customBackgroundImage;
+          bgPreviewContainer.style.display = 'block';
+          removeBgBtn.hidden = false;
+          updateThemeColors(); // Ensure opacity updates correctly
+        }
+
+        renderThemeGrid();
+        renderBackgroundThemeGrid();
+        renderFontFamilyDropdown();
+        updateFontColorInputs();
+        renderSidebar();
+        renderSummaries();
+        renderFinishedChapters();
+        restoreCollapsedState();
+
+        if (!hasSeenTutorial) {
+          openHowItWorks();
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load state:", e);
+    }
+  }
+
+  // ==========================================
+  // Theme Logic
+  // ==========================================
+
+  // Helper: Simple color brightness adjustment for hover state
+  function adjustColorBrightness(hex, percent) {
+    let num = parseInt(hex.replace("#", ""), 16),
+    amt = Math.round(2.55 * percent),
+    R = (num >> 16) & 255,
+    B = ((num >> 8) & 0x00FF) + amt,
+    G = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1);
+  }
+
+  // Helper: Hex to RGB object
+  function hexToRgb(hex) {
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
+
+  // Function to update random glows for all elements
+  function updateRandomGlows() {
+    let themeColors = [];
+    
+    // Gather colors based on active theme
+    if (selectedTheme === 'custom') {
+      if (customButtonColors.accent) themeColors.push(customButtonColors.accent);
+      if (customButtonColors.success) themeColors.push(customButtonColors.success);
+      if (customButtonColors.danger) themeColors.push(customButtonColors.danger);
+      if (customButtonColors.warning) themeColors.push(customButtonColors.warning);
+      // Fallbacks if empty
+      if (themeColors.length === 0) themeColors = ['#6366f1', '#10b981', '#ef4444', '#f59e0b'];
+    } else {
+      let theme = themes[selectedTheme];
+      if (theme) {
+        themeColors.push(theme.accent, theme.success, theme.danger, theme.warning);
+      } else {
+        themeColors = ['#6366f1', '#10b981', '#ef4444', '#f59e0b'];
+      }
+    }
+
+    // Target elements: Buttons, Checkboxes, Radio buttons
+    // We specifically target buttons and inputs to distribute the colors
+    let elements = document.querySelectorAll('button, input[type="checkbox"], input[type="radio"]');
+    
+    elements.forEach(el => {
+      if (themeColors.length > 0) {
+        let randomHex = themeColors[Math.floor(Math.random() * themeColors.length)];
+        let randomRgba = hexToRgba(randomHex, 0.4);
+        
+        // Set glow color (for borders and shadows)
+        el.style.setProperty('--glow-color', randomRgba);
+
+        // If it's a button, assign the random color to the background override vars
+        if (el.tagName === 'BUTTON') {
+            let hoverHex = adjustColorBrightness(randomHex, -20);
+            el.style.setProperty('--btn-bg-override', randomHex);
+            el.style.setProperty('--btn-hover-override', hoverHex);
+        }
+        
+        // If it's a checkbox/radio, set the accent color directly
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            el.style.accentColor = randomHex;
+        }
+      }
+    });
+  }
+
+  // Helper: Apply button theme colors
+  function applyTheme(themeKey) {
+    let theme = themes[themeKey];
+    if (!theme) return;
+
+    document.documentElement.style.setProperty('--accent-primary', theme.accent);
+    document.documentElement.style.setProperty('--accent-primary-hover', theme.accentHover);
+    document.documentElement.style.setProperty('--accent-success', theme.success);
+    document.documentElement.style.setProperty('--accent-success-hover', theme.successHover);
+    document.documentElement.style.setProperty('--accent-danger', theme.danger);
+    document.documentElement.style.setProperty('--accent-danger-hover', theme.dangerHover);
+    document.documentElement.style.setProperty('--accent-warning', theme.warning);
+    document.documentElement.style.setProperty('--accent-warning-hover', theme.warningHover);
+    
+    // Set focus color based on accent color with 40% opacity
+    document.documentElement.style.setProperty('--focus-color', hexToRgba(theme.accent, 0.4));
+    
+    // Set button glow colors to match theme
+    document.documentElement.style.setProperty('--btn-glow-primary', hexToRgba(theme.accent, 0.4));
+    document.documentElement.style.setProperty('--btn-glow-success', hexToRgba(theme.success, 0.4));
+    document.documentElement.style.setProperty('--btn-glow-danger', hexToRgba(theme.danger, 0.4));
+    
+    selectedTheme = themeKey;
+    renderThemeGrid();
+    updateRandomGlows();
+  }
+
+  // Helper: Apply background theme colors
+  function applyBackgroundTheme(themeKey) {
+    let theme = backgroundThemes[themeKey];
+    if (!theme) return;
+
+    document.documentElement.style.setProperty('--bg-body', theme.bgBody);
+    document.documentElement.style.setProperty('--bg-panel', theme.bgPanel);
+    document.documentElement.style.setProperty('--bg-input', theme.bgInput);
+    document.documentElement.style.setProperty('--bg-hover', theme.bgHover);
+    document.documentElement.style.setProperty('--border-color', theme.borderColor);
+    document.documentElement.style.setProperty('--border-light', theme.borderLight);
+    document.documentElement.style.setProperty('--shadow-sm', theme.shadowSm);
+    document.documentElement.style.setProperty('--shadow-md', theme.shadowMd);
+    document.documentElement.style.setProperty('--shadow-lg', theme.shadowLg);
+
+    // Sync light-mode class for specific CSS fallbacks if needed (e.g. for image opacity)
+    if (theme.isLight) {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+
+    selectedBackgroundTheme = themeKey;
+    updateThemeColors(); // Check custom bg opacity
+    renderBackgroundThemeGrid();
+  }
+
+  // Helper: Apply font family
+  function applyFontFamily(fontFamilyKey) {
+    let theme = fontThemes[fontFamilyKey];
+    if (!theme) return;
+
+    // Apply font family
+    document.documentElement.style.setProperty('--font-main', theme.fontFamily);
+    document.body.style.fontFamily = theme.fontFamily;
+
+    selectedFontFamily = fontFamilyKey;
+    saveState();
+  }
+
+  // Helper: Apply both font family and colors
+  function applyFontSettings() {
+    // Apply font family
+    if (selectedFontFamily && fontThemes[selectedFontFamily]) {
+      let fontFamily = fontThemes[selectedFontFamily].fontFamily;
+      document.documentElement.style.setProperty('--font-main', fontFamily);
+      document.body.style.fontFamily = fontFamily;
+    }
+
+    // Apply font colors
+    document.documentElement.style.setProperty('--text-main', customFontMainColor);
+    document.documentElement.style.setProperty('--text-muted', customFontMutedColor);
+
+    saveState();
+  }
+
+  // Update font family from dropdown
+  window.updateFontFamily = function(fontFamilyKey) {
+    if (!fontFamilyKey) return;
+    selectedFontFamily = fontFamilyKey;
+    applyFontFamily(fontFamilyKey);
+  };
+
+  // Update font colors from color pickers
+  window.updateFontColor = function(type, color) {
+    if (type === 'main') {
+      customFontMainColor = color;
+      document.getElementById('fontMainColorValue').textContent = color;
+    } else if (type === 'muted') {
+      customFontMutedColor = color;
+      document.getElementById('fontMutedColorValue').textContent = color;
+    }
+    applyFontSettings();
+  };
+
+  // Update the color picker inputs to match current state
+  function updateFontColorInputs() {
+    let mainInput = document.getElementById('fontMainColorInput');
+    let mutedInput = document.getElementById('fontMutedColorInput');
+    let mainValue = document.getElementById('fontMainColorValue');
+    let mutedValue = document.getElementById('fontMutedColorValue');
+
+    if (mainInput) mainInput.value = customFontMainColor;
+    if (mutedInput) mutedInput.value = customFontMutedColor;
+    if (mainValue) mainValue.textContent = customFontMainColor;
+    if (mutedValue) mutedValue.textContent = customFontMutedColor;
+  }
+  
+  // Render Font Family Dropdown
+  function renderFontFamilyDropdown() {
+    let select = document.getElementById("fontFamilySelect");
+    if(!select) return;
+    select.innerHTML = '';
+    
+    for(let key in fontThemes) {
+      let theme = fontThemes[key];
+      let option = document.createElement('option');
+      option.value = key;
+      option.textContent = theme.name;
+      if(key === selectedFontFamily) option.selected = true;
+      select.appendChild(option);
+    }
+  }
+
+  // Render button theme grid in UI settings
+  function renderThemeGrid() {
+    let grid = document.getElementById('themeGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    for (let key in themes) {
+      let theme = themes[key];
+      let option = document.createElement('div');
+      option.className = 'theme-option' + (key === selectedTheme ? ' active' : '');
+      option.onclick = () => {
+        applyTheme(key);
+        saveState();
+      };
+      
+      let colors = document.createElement('div');
+      colors.className = 'theme-colors';
+      
+      // Add color dots: accent, success, danger, warning
+      ['accent', 'success', 'danger', 'warning'].forEach(colorType => {
+        let dot = document.createElement('div');
+        dot.className = 'theme-color-dot';
+        dot.style.backgroundColor = theme[colorType];
+        colors.appendChild(dot);
+      });
+      
+      let name = document.createElement('div');
+      name.className = 'theme-name';
+      name.textContent = theme.name;
+      
+      option.appendChild(colors);
+      option.appendChild(name);
+      grid.appendChild(option);
+    }
+
+    // Add Custom Theme Option with 4 Color Pickers
+    let customOption = document.createElement('div');
+    customOption.className = 'theme-option' + (selectedTheme === 'custom' ? ' active' : '');
+    // Add click handler to apply custom theme when clicking the button
+    customOption.onclick = (e) => {
+      // Only trigger if clicking the option div, not the color inputs
+      if (e.target.tagName !== 'INPUT') {
+        selectedTheme = 'custom';
+        applyCustomButtonTheme();
+        saveState();
+      }
+    };
+    
+    let customColors = document.createElement('div');
+    customColors.className = 'theme-colors';
+    
+    // Types to match the dots in other themes
+    let types = ['accent', 'success', 'danger', 'warning'];
+    // Default fallbacks
+    let defaults = { accent: '#6366f1', success: '#10b981', danger: '#ef4444', warning: '#f59e0b' };
+
+    types.forEach(type => {
+      let input = document.createElement('input');
+      input.type = 'color';
+      input.value = customButtonColors[type] || defaults[type];
+      input.onchange = function() {
+        customButtonColors[type] = this.value;
+        selectedTheme = 'custom';
+        applyCustomButtonTheme();
+        saveState();
+      };
+      customColors.appendChild(input);
+    });
+    
+    let customName = document.createElement('div');
+    customName.className = 'theme-name';
+    customName.textContent = 'Custom';
+    
+    customOption.appendChild(customColors);
+    customOption.appendChild(customName);
+    grid.appendChild(customOption);
+  }
+
+  // Render background theme grid in UI settings
+  function renderBackgroundThemeGrid() {
+    let grid = document.getElementById('bgThemeGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    for (let key in backgroundThemes) {
+      let theme = backgroundThemes[key];
+      let option = document.createElement('div');
+      option.className = 'theme-option' + (key === selectedBackgroundTheme ? ' active' : '');
+      option.onclick = () => {
+        applyBackgroundTheme(key);
+        saveState();
+      };
+      
+      let colors = document.createElement('div');
+      colors.className = 'theme-colors';
+      
+      // Add color dots representing: bg body, bg panel, bg input
+      let bgBodyDot = document.createElement('div');
+      bgBodyDot.className = 'theme-color-dot';
+      bgBodyDot.style.backgroundColor = theme.bgBody;
+      colors.appendChild(bgBodyDot);
+
+      let bgPanelDot = document.createElement('div');
+      bgPanelDot.className = 'theme-color-dot';
+      bgPanelDot.style.backgroundColor = theme.bgPanel;
+      colors.appendChild(bgPanelDot);
+
+      let bgInputDot = document.createElement('div');
+      bgInputDot.className = 'theme-color-dot';
+      bgInputDot.style.backgroundColor = theme.bgInput;
+      colors.appendChild(bgInputDot);
+      
+      let name = document.createElement('div');
+      name.className = 'theme-name';
+      name.textContent = theme.name;
+      
+      option.appendChild(colors);
+      option.appendChild(name);
+      grid.appendChild(option);
+    }
+
+    // Add Custom Background Theme Option with 3 Color Pickers
+    let customOption = document.createElement('div');
+    customOption.className = 'theme-option' + (selectedBackgroundTheme === 'custom' ? ' active' : '');
+    // Add click handler to apply custom theme when clicking the button
+    customOption.onclick = (e) => {
+      // Only trigger if clicking the option div, not the color inputs
+      if (e.target.tagName !== 'INPUT') {
+        selectedBackgroundTheme = 'custom';
+        applyCustomBackgroundTheme();
+        saveState();
+      }
+    };
+    
+    let customColors = document.createElement('div');
+    customColors.className = 'theme-colors';
+    
+    // Types to match the dots in other themes
+    let types = ['body', 'panel', 'input'];
+    // Default fallbacks
+    let defaults = { body: '#0f0f0f', panel: '#1a1a1a', input: '#242424' };
+
+    types.forEach(type => {
+      let input = document.createElement('input');
+      input.type = 'color';
+      input.value = customBgColors[type] || defaults[type];
+      input.onchange = function() {
+        customBgColors[type] = this.value;
+        selectedBackgroundTheme = 'custom';
+        applyCustomBackgroundTheme();
+        saveState();
+      };
+      customColors.appendChild(input);
+    });
+    
+    let customName = document.createElement('div');
+    customName.className = 'theme-name';
+    customName.textContent = 'Custom';
+    
+    customOption.appendChild(customColors);
+    customOption.appendChild(customName);
+    grid.appendChild(customOption);
+  }
+
+  // Apply Custom Button Theme (Multi-color)
+  function applyCustomButtonTheme() {
+    // Default colors
+    let accent = customButtonColors.accent || "#6366f1";
+    let success = customButtonColors.success || "#10b981";
+    let danger = customButtonColors.danger || "#ef4444";
+    let warning = customButtonColors.warning || "#f59e0b";
+
+    // Accent
+    document.documentElement.style.setProperty('--accent-primary', accent);
+    // Hover (darker)
+    let accentHover = adjustColorBrightness(accent, -20);
+    document.documentElement.style.setProperty('--accent-primary-hover', accentHover);
+    // Focus color
+    document.documentElement.style.setProperty('--focus-color', hexToRgba(accent, 0.4));
+    
+    // Success
+    document.documentElement.style.setProperty('--accent-success', success);
+    let successHover = adjustColorBrightness(success, -20);
+    document.documentElement.style.setProperty('--accent-success-hover', successHover);
+    
+    // Danger
+    document.documentElement.style.setProperty('--accent-danger', danger);
+    let dangerHover = adjustColorBrightness(danger, -20);
+    document.documentElement.style.setProperty('--accent-danger-hover', dangerHover);
+    
+    // Warning
+    document.documentElement.style.setProperty('--accent-warning', warning);
+    let warningHover = adjustColorBrightness(warning, -20);
+    document.documentElement.style.setProperty('--accent-warning-hover', warningHover);
+    
+    // Set button glow colors to match theme
+    document.documentElement.style.setProperty('--btn-glow-primary', hexToRgba(accent, 0.4));
+    document.documentElement.style.setProperty('--btn-glow-success', hexToRgba(success, 0.4));
+    document.documentElement.style.setProperty('--btn-glow-danger', hexToRgba(danger, 0.4));
+    
+    renderThemeGrid();
+    updateRandomGlows();
+  }
+
+  // Apply Custom Background Theme (Multi-color)
+  function applyCustomBackgroundTheme() {
+    // Default fallbacks
+    let cBody = customBgColors.body || "#0f0f0f";
+    let cPanel = customBgColors.panel || "#1a1a1a";
+    let cInput = customBgColors.input || "#242424";
+    
+    // Determine light/dark mode based on body color luminance
+    let rgbBody = hexToRgb(cBody);
+    let isLight = rgbBody ? (0.299 * rgbBody.r + 0.587 * rgbBody.g + 0.114 * rgbBody.b > 128) : false;
+
+    // Derive palette based on panel color (for hover and borders)
+    let shift1, shift2, shift3;
+    if (isLight) {
+      shift1 = -10; shift2 = -20; shift3 = -30; // Darken
+    } else {
+      shift1 = 10; shift2 = 20; shift3 = 30;   // Lighten
+    }
+
+    let cHover = adjustColorBrightness(cPanel, shift1);
+    
+    let cBorder = isLight ? adjustColorBrightness(cPanel, -30) : adjustColorBrightness(cPanel, 40);
+    let cBorderLight = isLight ? adjustColorBrightness(cPanel, -20) : adjustColorBrightness(cPanel, 20);
+
+    let cShadow = isLight ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.5)";
+
+    // Apply Vars
+    document.documentElement.style.setProperty('--bg-body', cBody);
+    document.documentElement.style.setProperty('--bg-panel', cPanel);
+    document.documentElement.style.setProperty('--bg-input', cInput);
+    document.documentElement.style.setProperty('--bg-hover', cHover);
+    document.documentElement.style.setProperty('--border-color', cBorder);
+    document.documentElement.style.setProperty('--border-light', cBorderLight);
+    document.documentElement.style.setProperty('--shadow-sm', cShadow === "rgba(0, 0, 0, 0.1)" ? "0 1px 2px rgba(0, 0, 0, 0.1)" : "0 1px 2px rgba(0, 0, 0, 0.3)");
+    document.documentElement.style.setProperty('--shadow-md', cShadow === "rgba(0, 0, 0, 0.1)" ? "0 4px 6px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.4)");
+    document.documentElement.style.setProperty('--shadow-lg', cShadow === "rgba(0, 0, 0, 0.1)" ? "0 10px 15px rgba(0, 0, 0, 0.1)" : "0 10px 15px rgba(0, 0, 0, 0.5)");
+
+    // Handle body class for transparency logic
+    if (isLight) document.body.classList.add('light-mode');
+    else document.body.classList.remove('light-mode');
+    
+    updateThemeColors();
+    renderBackgroundThemeGrid();
+  }
+
+  // Initialize app
+  loadState();
+
+  // ==========================================
+  // UI Event Handlers
+  // ==========================================
+
+  window.toggleSection = function(contentId, headerEl) {
+    let contentEl = document.getElementById(contentId);
+    let isExpanded = contentEl.classList.contains("visible");
+    
+    if (isExpanded) {
+      contentEl.classList.remove("visible");
+      headerEl.classList.remove("expanded");
+    } else {
+      contentEl.classList.add("visible");
+      headerEl.classList.add("expanded");
+    }
+    
+    if (contentId === "loreAndPromptingContent") {
+      collapsedSections.loreAndPrompting = !isExpanded;
+    } else if (contentId === "charactersContent") {
+      collapsedSections.characters = !isExpanded;
+    } else if (contentId === "settingsContent") {
+      collapsedSections.settings = !isExpanded;
+    } else if (contentId === "summariesContent") {
+      collapsedSections.summaries = !isExpanded;
+    }
+    
+    saveState();
+  };
+  
+  function restoreCollapsedState() {
+    const sections = [
+      { id: "loreAndPromptingContent", state: collapsedSections.loreAndPrompting },
+      { id: "charactersContent", state: collapsedSections.characters },
+      { id: "settingsContent", state: collapsedSections.settings },
+      { id: "summariesContent", state: collapsedSections.summaries }
+    ];
+    
+    sections.forEach(section => {
+      let contentEl = document.getElementById(section.id);
+      let headerEl = contentEl.previousElementSibling;
+      
+      if (section.state) {
+        contentEl.classList.remove("visible");
+        headerEl.classList.remove("expanded");
+      } else {
+        contentEl.classList.add("visible");
+        headerEl.classList.add("expanded");
+      }
+    });
+  }
+
+  window.openHowItWorks = function() {
+    howItWorksDialogEl.showModal();
+  }
+
+  window.closeHowItWorks = function() {
+    howItWorksDialogEl.close();
+    if (!hasSeenTutorial) {
+      hasSeenTutorial = true;
+      saveState();
+    }
+  }
+
+  window.toggleTheme = function() {
+    // Toggle between 'dark' and 'light' background themes
+    if(selectedBackgroundTheme === 'dark') {
+      applyBackgroundTheme('light');
+    } else {
+      applyBackgroundTheme('dark');
+    }
+    // Update reactive colors immediately to reflect the new mode
+    updateThemeColors();
+    saveState();
+  };
+
+  // UI Settings Handlers - Background Image
+  window.handleBgUpload = function(input) {
+    if (input.files && input.files[0]) {
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        customBackgroundImage = e.target.result;
+        document.body.style.backgroundImage = `url(${customBackgroundImage})`;
+        document.body.classList.add('has-custom-bg');
+        bgPreviewImg.src = customBackgroundImage;
+        bgPreviewContainer.style.display = 'block';
+        removeBgBtn.hidden = false;
+        updateThemeColors(); // Update opacity settings for custom bg
+        saveState();
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  };
+
+  window.removeCustomBackground = function() {
+    customBackgroundImage = "";
+    document.body.style.backgroundImage = 'none';
+    document.body.classList.remove('has-custom-bg');
+    bgPreviewContainer.style.display = 'none';
+    bgPreviewImg.src = "";
+    removeBgBtn.hidden = true;
+    bgImageInput.value = ""; // Clear file input
+    updateThemeColors(); // Revert to opaque settings
+    saveState();
+  }
+
+  storyOutputEl.oninput = () => {
+    currentStoryText = storyOutputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  plotInputEl.oninput = () => {
+    plot = plotInputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  themesInputEl.oninput = () => {
+    themesStr = themesInputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  ideasInputEl.oninput = () => {
+    ideas = ideasInputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  negativePromptsInputEl.oninput = () => {
+    negativePrompts = negativePromptsInputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  voiceInputEl.onchange = () => {
+    voice = voiceInputEl.value;
+    saveState();
+  }
+
+  bannedWordsInputEl.oninput = () => {
+    bannedWords = bannedWordsInputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  }
+
+  systemPromptInputEl.oninput = () => {
+    customSystemPrompt = systemPromptInputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  }
+  
+  charGenOutputEl.oninput = () => {
+    charGenDraft = charGenOutputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  assistantOutputEl.oninput = () => {
+    assistantDraft = assistantOutputEl.value;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  };
+
+  window.updateLength = function() {
+    let isUnlimited = lengthUnlimitedCheck.checked;
+    let val = parseInt(lengthNumberInput.value);
+    let unit = lengthUnitInput.value;
+
+    if (isUnlimited) {
+      currentLengthOption = { val: val, unit: unit, isUnlimited: true };
+      lengthNumberInput.disabled = true;
+      lengthUnitInput.disabled = true;
+    } else {
+      currentLengthOption = { val: val, unit: unit, isUnlimited: false };
+      lengthNumberInput.disabled = false;
+      lengthUnitInput.disabled = false;
+    }
+    saveState();
+  }
+
+  // ==========================================
+  // Overlay Panel Toggles
+  // ==========================================
+
+  function closeAllOverlays() {
+    let allPanels = [
+      "sidebarColumnEl", 
+      "charGenColumnEl", 
+      "assistantColumnEl", 
+      "saveExportColumnEl", 
+      "clearResetColumnEl", 
+      "commentsColumnEl",
+      "memoryLorePanel",
+      "memoryCharactersPanel",
+      "memorySettingsPanel",
+      "memorySummariesPanel",
+      "memoryPromptingPanel",
+      "chaptersViewPanel",
+      "uiSettingsPanel"
+    ];
+
+    allPanels.forEach(id => {
+      let el = document.getElementById(id);
+      if(el) el.classList.remove("open");
+    });
+    
+    toggleMemoryBtn.textContent = "📚 Toolkit";
+    document.body.style.overflow = "auto";
+  }
+
+  function openOverlayById(id) {
+    closeAllOverlays();
+    let el = document.getElementById(id);
+    if(el) {
+      el.classList.add("open");
+      document.body.style.overflow = "hidden";
+      
+      // If opening UI settings, render grids
+      if (id === "uiSettingsPanel") {
+        renderThemeGrid();
+        renderBackgroundThemeGrid();
+        renderFontFamilyDropdown();
+        updateFontColorInputs();
+      }
+    }
+  }
+
+  window.toggleComments = function() {
+    let panel = commentsColumnEl;
+    let isOpen = panel.classList.contains("open");
+
+    if (!isOpen) {
+      openOverlayById("commentsColumnEl");
+    } else {
+      closeAllOverlays();
+    }
+  }
+
+  window.toggleMemory = function() {
+    let sidebar = sidebarColumnEl;
+    let btn = toggleMemoryBtn;
+    let isOpen = sidebar.classList.contains("open");
+
+    if (!isOpen) {
+      closeAllOverlays();
+      sidebar.classList.add("open");
+      btn.textContent = "Close Hub";
+      document.body.style.overflow = "hidden";
+    } else {
+      sidebar.classList.remove("open");
+      btn.textContent = "📚 Toolkit";
+      document.body.style.overflow = "auto";
+    }
+  }
+  
+  window.openMemoryPanel = function(panelId) {
+    openOverlayById(panelId);
+  };
+  
+  window.closeMemorySubPanel = function() {
+    let openPanels = [
+      "memoryLorePanel",
+      "memoryCharactersPanel",
+      "memorySettingsPanel",
+      "memorySummariesPanel",
+      "memoryPromptingPanel",
+      "charGenColumnEl",
+      "assistantColumnEl",
+      "saveExportColumnEl",
+      "clearResetColumnEl",
+      "chaptersViewPanel",
+      "uiSettingsPanel"
+    ];
+    
+    openPanels.forEach(id => {
+      let el = document.getElementById(id);
+      if(el && el.classList.contains("open")) {
+        el.classList.remove("open");
+      }
+    });
+
+    sidebarColumnEl.classList.add("open");
+    toggleMemoryBtn.textContent = "Close Hub";
+  }
+
+  window.toggleCharGen = function() {
+    openOverlayById("charGenColumnEl");
+  }
+
+  window.toggleAssistant = function() {
+    openOverlayById("assistantColumnEl");
+  }
+
+  window.toggleSaveExport = function() {
+    renderSavedStoriesList();
+    openOverlayById("saveExportColumnEl");
+  }
+  
+  window.toggleClearReset = function() {
+    openOverlayById("clearResetColumnEl");
+  }
+
+  // ==========================================
+  // Memory Management
+  // ==========================================
+  
+  function buildMemoryContext() {
+    let context = "";
+    if (plot) {
+      context += `\n\nBackground/History:\n${plot}`;
+    }
+    if (themesStr) {
+      context += `\n\nThemes:\n${themesStr}`;
+    }
+    if (ideas) {
+      context += `\n\nStory Ideas:\n${ideas}`;
+    }
+    if (chapterSummaries.length > 0) {
+      context += "\n\nPrevious Chapter Summaries (for context and continuity):\n";
+      chapterSummaries.forEach(item => {
+        context += `- ${item.title}: ${item.summary}\n`;
+      });
+    }
+    if (characters.length > 0) {
+      context += "\nCharacters:\n";
+      characters.forEach(c => {
+        context += `- ${c.name}: ${c.description}\n`;
+      });
+    }
+    if (settings.length > 0) {
+      context += "\nSettings:\n";
+      settings.forEach(s => {
+        context += `- ${s.name}: ${s.description}\n`;
+      });
+    }
+    return context;
+  }
+
+  window.addCharacter = function() {
+    let name = newCharNameInput.value.trim();
+    let desc = newCharDescInput.value.trim();
+    if (!name) return alert("Please enter a character name.");
+    
+    characters.push({ name, description: desc });
+    newCharNameInput.value = "";
+    newCharDescInput.value = "";
+    renderSidebar();
+    saveState();
+  }
+
+  window.addSetting = function() {
+    let name = newSettingNameInput.value.trim();
+    let desc = newSettingDescInput.value.trim();
+    if (!name) return alert("Please enter a location name.");
+    
+    settings.push({ name, description: desc });
+    newSettingNameInput.value = "";
+    newSettingDescInput.value = "";
+    renderSidebar();
+    saveState();
+  }
+
+  window.removeCharacter = function(index) {
+    if(confirm("Remove this character?")) {
+      characters.splice(index, 1);
+      renderSidebar();
+      saveState();
+    }
+  }
+
+  window.removeSetting = function(index) {
+    if(confirm("Remove this setting?")) {
+      settings.splice(index, 1);
+      renderSidebar();
+      saveState();
+    }
+  }
+
+  window.updateCharacter = function(index, field, val) {
+    if(field === 'name') characters[index].name = val;
+    else characters[index].description = val;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  }
+
+  window.updateSetting = function(index, field, val) {
+    if(field === 'name') settings[index].name = val;
+    else settings[index].description = val;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  }
+  
+  window.updateSummary = function(index, field, val) {
+    if(field === 'title') chapterSummaries[index].title = val;
+    else chapterSummaries[index].summary = val;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveState, 1000);
+  }
+
+  function renderSidebar() {
+    if (characters.length === 0) {
+      charactersListEl.innerHTML = '<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No characters identified yet.</div>';
+    } else {
+      charactersListEl.innerHTML = '';
+      characters.forEach((c, index) => {
+        let div = document.createElement('div');
+        div.style.cssText = "background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); position:relative;";
+        div.innerHTML = `
+          <button onclick="removeCharacter(${index})" class="btn-close">&times;</button>
+          <input type="text" value="${c.name}" oninput="updateCharacter(${index}, 'name', this.value)" style="width:100%; margin-bottom:8px; padding-right:40px;">
+          <textarea oninput="updateCharacter(${index}, 'desc', this.value)" style="width:100%; height:80px; padding-right:40px; resize:vertical;">${c.description}</textarea>
+          <button onclick="editCharacterInGenerator(${index})" class="btn-secondary" style="width:100%; margin-top:12px;">✏️ Edit in Character Generator</button>
+        `;
+        charactersListEl.appendChild(div);
+      });
+    }
+
+    if (settings.length === 0) {
+      settingsListEl.innerHTML = '<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No settings identified yet.</div>';
+    } else {
+      settingsListEl.innerHTML = '';
+      settings.forEach((s, index) => {
+        let div = document.createElement('div');
+        div.style.cssText = "background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); position:relative;";
+        div.innerHTML = `
+          <button onclick="removeSetting(${index})" class="btn-close">&times;</button>
+          <input type="text" value="${s.name}" oninput="updateSetting(${index}, 'name', this.value)" style="width:100%; margin-bottom:8px; padding-right:40px;">
+          <textarea oninput="updateSetting(${index}, 'desc', this.value)" style="width:100%; height:80px; padding-right:40px; resize:vertical;">${s.description}</textarea>
+        `;
+        settingsListEl.appendChild(div);
+      });
+    }
+    updateRandomGlows();
+  }
+
+  function renderSummaries() {
+    if (chapterSummaries.length === 0) {
+      summariesListEl.innerHTML = '<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No chapters finished yet.</div>';
+    } else {
+      summariesListEl.innerHTML = '';
+      chapterSummaries.forEach((s, index) => {
+        let div = document.createElement('div');
+        div.style.cssText = "background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); position: relative;";
+        div.innerHTML = `
+          <button onclick="confirmDeleteChapter(${index})" class="btn-close">&times;</button>
+          <input type="text" value="${s.title}" oninput="updateSummary(${index}, 'title', this.value)" style="width:100%; margin-bottom:8px; font-weight:600;">
+          <textarea oninput="updateSummary(${index}, 'summary', this.value)" style="width:100%; height:80px; resize:vertical;">${s.summary}</textarea>
+        `;
+        summariesListEl.appendChild(div);
+      });
+    }
+    updateRandomGlows();
+  }
+
+  // ==========================================
+  // Generation Logic
+  // ==========================================
+
+  window.undo = function() {
+    if (undoStack.length > 0) {
+      let previousText = undoStack.pop();
+      currentStoryText = previousText;
+      storyOutputEl.value = previousText;
+      saveState();
+    }
+  }
+
+  async function generate() {
+    if (generationTask) {
+      generationTask.stop();
+      generationTask = null;
+      generateBtn.textContent = "✨ Generate";
+      loadingEl.hidden = true;
+      return;
+    }
+
+    undoStack.push(storyOutputEl.value);
+    if(undoStack.length > 20) undoStack.shift();
+
+    let topic = topicInput.value.trim();
+    if (!topic) topic = "an unexpected adventure";
+
+    generateBtn.textContent = "⏹ Stop"; 
+    loadingEl.hidden = false;
+
+    try {
+      let prompt = "";
+      
+      if (customSystemPrompt) {
+        prompt += `${customSystemPrompt}\n\n`;
+      }
+
+      if (voice && voice !== "Default") {
+        prompt += `VOICE/TONE STYLE: Write in a ${voice} voice.\n\n`;
+      }
+
+      let lengthInstruction = "";
+      if (currentLengthOption.isUnlimited) {
+        lengthInstruction = "Write an unlimited amount of content.";
+      } else {
+        let val = currentLengthOption.val > 0 ? currentLengthOption.val : 1;
+        let unit = currentLengthOption.unit;
+        let singularUnit = unit.endsWith('s') ? unit.slice(0, -1) : unit;
+        lengthInstruction = `CRITICAL LENGTH CONSTRAINT: You MUST write STRICTLY ${val} ${unit}. You MUST stop immediately after the last ${singularUnit}. DO NOT write ${val + 1} ${unit}. Do not write any extra text, concluding remarks, or transitions beyond the ${val} ${unit} limit.`;
+      }
+
+      let isContinuation = currentStoryText.trim().length > 0;
+
+      if (isContinuation) {
+        currentStoryText += "\n\n";
+        storyOutputEl.value = currentStoryText;
+      }
+
+      let memoryContext = buildMemoryContext();
+      
+      let negativeConstraints = "";
+      let negativeItems = [];
+      if (negativePrompts) negativeItems.push(`themes: ${negativePrompts}`);
+      if (bannedWords) negativeItems.push(`words/phrases: ${bannedWords}`);
+      
+      if (negativeItems.length > 0) {
+        negativeConstraints = `\n\nSTRICT NEGATIVE CONSTRAINTS:\nThe story must strictly AVOID the following: ${negativeItems.join(", ")}\nDo not include these themes, actions, words, or elements.`;
+      }
+
+      let antiRepetitionInstruction = "\n\nIMPORTANT: Avoid being repetitive with phrases and sentence structures. Keep the writing fresh and varied.";
+
+      if (isContinuation) {
+        let bridgeInstruction = `
+          SMOOTH SCENE TRANSITION REQUIREMENT:
+          The user is asking for a new event or scene based on: ("${topic}").
+          DO NOT simply jump immediately to this new scene.
+          Instead, first spend 1-3 sentences wrapping up the current moment/scene described in the story so far.
+          Then, naturally transition to the new request ("${topic}") using a logical bridge (e.g., "Meanwhile," "Later that day," "After a short drive," etc.).
+          The transition should feel continuous and fluid, avoiding sudden jumps in time or location without a connector.
+        `;
+
+        let detailedCharacterDescriptionInstruction = `
+          IMPORTANT CHARACTER DESCRIPTION REQUIREMENT:
+          If a new character is introduced, make sure to give them a thorough physical description. 
+          This should include: detailed appearance (hair, eyes, body type, distinctive features), clothing, mannerisms, and any unique traits that make them memorable.
+          The description should be comprehensive enough for readers to clearly visualize the character.
+          Do not introduce a character without providing these details, even if it takes several sentences.
+        `;
+
+        prompt += `Continue the story based on the following instruction: "${topic}". ${lengthInstruction} Maintain the tone and style of the existing story.
+
+The memory context below is provided for background information and loose inspiration. Use it only as a SUBTLE NUDGE to inform your writing style and general atmosphere. Do NOT let the memory context directly dictate the plot or content. Let your creativity lead primarily, using the memory only as faint background context; HOWEVER do not contradict anything that already exists in the memory context provided. ${memoryContext}
+
+${negativeConstraints}
+
+${antiRepetitionInstruction}
+
+${bridgeInstruction}
+
+${detailedCharacterDescriptionInstruction}
+
+Story so far:
+"""${currentStoryText}"""`;
+      } else {
+        prompt += `Write the **beginning** of a larger, multi-chapter story based on the following instruction: "${topic}". ${lengthInstruction} This is the opening scene or section, not a complete standalone short story. Focus on setting the scene, introducing key elements, and hooking the reader for the ongoing narrative.
+
+The memory context below is provided for background information and loose inspiration. Use it only as a SUBTLE NUDGE to inform your writing style and general atmosphere. Do NOT let the memory context directly dictate the plot or content. Let your creativity lead primarily, using the memory only as faint background context; HOWEVER do not contradict anything that already exists in the memory context provided. ${memoryContext}
+
+${negativeConstraints}
+
+${antiRepetitionInstruction}
+
+IMPORTANT CHARACTER DESCRIPTION REQUIREMENT:
+If a new character is introduced, make sure to give them a thorough physical description. 
+This should include: detailed appearance (hair, eyes, body type, distinctive features), clothing, mannerisms, and any unique traits that make them memorable.
+The description should be comprehensive enough for readers to clearly visualize the character.
+Do not introduce a character without providing these details, even if it takes several sentences.
+
+Ensure vivid descriptions of characters and places.`;
+      }
+
+      generationTask = generateText({
+        instruction: prompt,
+        onChunk: (data) => {
+          currentStoryText += data.textChunk;
+          storyOutputEl.value = currentStoryText;
+          storyOutputEl.scrollTop = storyOutputEl.scrollHeight;
+        }
+      });
+
+      await generationTask;
+
+    } catch (err) {
+      console.error("Generation error:", err);
+      if (generationTask !== null) {
+        alert("An error occurred while generating the story.");
+      }
+    } finally {
+      generationTask = null;
+      generateBtn.textContent = "✨ Generate";
+      loadingEl.hidden = true;
+      saveState();
+    }
+  }
+
+  // ==========================================
+  // Analysis & Chapter Management
+  // ==========================================
+
+  window.toggleChapter = function(textId, btn) {
+    let textEl = document.getElementById(textId);
+    if (textEl.style.display === "none") {
+      textEl.style.display = "block";
+      btn.textContent = "Hide Chapter Text";
+    } else {
+      textEl.style.display = "none";
+      btn.textContent = "Show Chapter Text";
+    }
+  };
+
+  function renderFinishedChapters() {
+    chaptersContainerEl.innerHTML = '';
+    if (chapterSummaries.length > 0) {
+      chapterSummaries.forEach((item, index) => {
+        if (!item.text) return;
+        
+        let chapterDiv = document.createElement("div");
+        chapterDiv.style.cssText = "border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-input) 100%); margin-bottom: 20px; position: relative;";
+        
+        let chapterId = "chapter-" + index;
+        let textId = chapterId + "-text";
+
+        chapterDiv.innerHTML = `
+          <button onclick="confirmDeleteChapter(${index})" class="btn-close">&times;</button>
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+            <h3 style="margin: 0; color: var(--text-main); border-bottom: 2px solid var(--accent-success); padding-bottom: 8px; font-weight: 700;">${item.title}</h3>
+            <button onclick="toggleChapter('${textId}', this)" class="btn-secondary" style="font-size:12px; padding:6px 12px;">Show Chapter Text</button>
+          </div>
+          <div id="${textId}" style="display: none; white-space: pre-wrap; font-family: 'Georgia', serif; line-height: 1.7; color: var(--text-main);">${item.text}</div>
+        `;
+        chaptersContainerEl.appendChild(chapterDiv);
+      });
+    }
+    updateRandomGlows();
+  }
+
+  window.confirmDeleteChapter = function(index) {
+    chapterToDeleteIndex = index;
+    deleteChapterDialogEl.showModal();
+  }
+
+  window.cancelDeleteChapter = function() {
+    chapterToDeleteIndex = null;
+    deleteChapterDialogEl.close();
+  }
+
+  window.performDeleteChapter = async function() {
+    if (chapterToDeleteIndex !== null) {
+      chapterSummaries.splice(chapterToDeleteIndex, 1);
+      renderSummaries();
+      renderFinishedChapters();
+      chapterToDeleteIndex = null;
+      deleteChapterDialogEl.close();
+      await saveState();
+    }
+  }
+
+  async function analyzeStoryForCharacters(text) {
+    if(!text) return 0;
+    try {
+      let existingCharsInfo = characters.map(c => `Name: ${c.name}, Description: ${c.description}`).join("\n");
+      let textToAnalyze = text;
+
+      let prompt = `Analyze the story text snippet below carefully.
+      
+      TASK: Identify ALL characters mentioned in the text.
+      Compare them with the provided list of existing character names and descriptions.
+
+      IMPORTANT: Do your best to identify when an existing character is being refered to in a new/different way, i.e. a character named Abby Boom can be refered to as 'Ms. Boom,' 'Abby,' or by a nickname like 'Abs.'
+      
+      INSTRUCTIONS:
+      1. If a name matches an existing character, provide ONLY the NEW information presented in the present text context that is NOT already in the existing description.
+      2. If a name is NEW (not in the existing list, and not refering to a character on the existing list), create a detailed description based on the text context.
+      3. Be extremely thorough. Scan for ANY proper nouns or capitalized names that indicate a person, even if mentioned only once.
+      4. Return ONLY a raw JSON object.
+      
+      Existing Characters:
+${existingCharsInfo}
+      
+      OUTPUT JSON FORMAT:
+      { 
+        "characters": [{"name": "String", "description": "String"}]
+      }
+      
+      IMPORTANT: ONLY return characters that appear in the text snippet below. Do not return characters from the "Existing" list if they are not present in the text.
+        -The character descriptions MUST be formatted as a list of traits, where each trait is on a new line starting with a hyphen "-".
+        -Example format: 
+        -Trait 1
+        -Trait 2
+        -etc..
+        -The character descriptions SHOULD include physical characteristics, nicknames, relationships, and mannerisms. Enduring characteristics only.
+        -The character descriptions SHOULD NOT include one-time actions, non-enduring characteristics, nor irrelevant story beats.
+        -For existing characters, ONLY return new information not already in their description, formatted in the list style above.
+        -If there are not any substantial new pieces of information pertaining to enduring qualities, you can return an empty description for that character.
+      
+      Story Text to Analyze:
+      """${textToAnalyze}"""`;
+      
+      let response = await generateText(prompt);
+      response = response.replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      let data;
+      try {
+        data = JSON.parse(response);
+      } catch (e) {
+        let firstBrace = response.indexOf('{');
+        let lastBrace = response.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+           response = response.substring(firstBrace, lastBrace + 1);
+           data = JSON.parse(response);
+        } else {
+           throw e;
+        }
+      }
+      
+      let updatedCount = 0;
+      
+      if(data.characters) {
+        data.characters.forEach(c => {
+          if(!c.name) return;
+          let existingCharIndex = characters.findIndex(char => char.name.toLowerCase() === c.name.toLowerCase());
+          
+          if(existingCharIndex !== -1) {
+            let existingDesc = characters[existingCharIndex].description;
+            let newDesc = c.description.trim();
+            
+            if(newDesc && newDesc.length > 0) {
+              characters[existingCharIndex].description = existingDesc + "\n" + newDesc;
+              updatedCount++;
+            }
+          } else {
+            characters.push(c);
+            updatedCount++;
+          }
+        });
+      }
+      
+      return updatedCount;
+    } catch (e) {
+      console.error("Character analysis failed:", e);
+      return 0;
+    }
+  }
+
+  async function analyzeStoryForSettings(text) {
+    if(!text) return 0;
+    try {
+      let existingSettingsInfo = settings.map(s => `Name: ${s.name}, Description: ${s.description}`).join("\n");
+      let textToAnalyze = text;
+
+      let prompt = `Analyze the story text snippet below carefully.
+      
+      TASK: Identify ALL settings/locations mentioned in the text.
+      Compare them with the provided list of existing setting names and descriptions.
+      
+      INSTRUCTIONS:
+      1. If a name matches an existing setting, provide ONLY the NEW information presented in the present text context that is NOT already in the existing description.
+      2. If a name is NEW (not in the existing list), create a detailed description based on the text context.
+      3. Be extremely thorough. Scan for ANY proper nouns or capitalized names that indicate a place or location, even if mentioned only once.
+      4. Return ONLY a raw JSON object.
+      
+      Existing Settings:
+${existingSettingsInfo}
+      
+      OUTPUT JSON FORMAT:
+      { 
+        "settings": [{"name": "String", "description": "String"}]
+      }
+      
+      IMPORTANT: ONLY return settings that appear in the text snippet below. Do not return settings from the "Existing" list if they are not present in the text.
+        -The setting descriptions MUST be formatted as a list of traits, where each trait is on a new line starting with a hyphen "-".
+        -Example format: 
+        -Trait 1
+        -Trait 2
+        -Trait 3
+        -The setting descriptions SHOULD include physical characteristics, adjacent/connecting spaces, atmosphere, and important features.
+        -The setting descriptions SHOULD NOT include one-time events, non-enduring details, nor irrelevant story beats.
+        -For existing settings, ONLY return new information not already in their description, formatted in the list style above.
+        -If there are not any substantial new pieces of information pertaining to enduring qualities, you can return an empty description for that setting.
+      
+      Story Text to Analyze:
+      """${textToAnalyze}"""`;
+      
+      let response = await generateText(prompt);
+      response = response.replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      let data;
+      try {
+        data = JSON.parse(response);
+      } catch (e) {
+        let firstBrace = response.indexOf('{');
+        let lastBrace = response.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+           response = response.substring(firstBrace, lastBrace + 1);
+           data = JSON.parse(response);
+        } else {
+           throw e;
+        }
+      }
+      
+      let updatedCount = 0;
+      
+      if(data.settings) {
+        data.settings.forEach(s => {
+          if(!s.name) return;
+          let existingSettingIndex = settings.findIndex(set => set.name.toLowerCase() === s.name.toLowerCase());
+          
+          if(existingSettingIndex !== -1) {
+            let existingDesc = settings[existingSettingIndex].description;
+            let newDesc = s.description.trim();
+            
+            if(newDesc && newDesc.length > 0) {
+              settings[existingSettingIndex].description = existingDesc + "\n" + newDesc;
+              updatedCount++;
+            }
+          } else {
+            settings.push(s);
+            updatedCount++;
+          }
+        });
+      }
+      
+      return updatedCount;
+    } catch (e) {
+      console.error("Settings analysis failed:", e);
+      return 0;
+    }
+  }
+
+  window.finishChapter = async function() {
+    let text = storyOutputEl.value.trim();
+    if (!text) return;
+
+    finishChapterBtn.disabled = true;
+    finishChapterBtn.textContent = "Finalizing...";
+
+    try {
+      let titlePrompt = "Generate a short, creative title (max 5 words) for this story chapter. Return ONLY the title, no quotes.\n\nStory:\n" + text.substring(0, 500) + "...";
+      let title = await generateText(titlePrompt);
+
+      let summaryPrompt = "Summarize the story chapter below in 2 concise paragraphs.\n\nStory:\n" + text;
+      let summaryText = await generateText(summaryPrompt);
+
+      chapterSummaries.push({
+        title: title,
+        summary: summaryText,
+        text: text
+      });
+
+      renderSummaries();
+      renderFinishedChapters();
+
+      let originalAnalyzingText = analyzingEl.textContent;
+      analyzingEl.textContent = "Updating memory with new characters and settings...";
+      analyzingEl.hidden = false;
+      
+      let charsUpdated = await analyzeStoryForCharacters(text);
+      let settingsUpdated = await analyzeStoryForSettings(text);
+      let totalUpdated = charsUpdated + settingsUpdated;
+      
+      if(totalUpdated > 0) {
+        renderSidebar();
+      }
+      
+      analyzingEl.hidden = true;
+      analyzingEl.textContent = originalAnalyzingText;
+
+      storyOutputEl.value = "";
+      currentStoryText = "";
+      undoStack = [];
+
+    } catch (err) {
+      console.error("Failed to finish chapter:", err);
+      alert("Could not generate title, summary, or save chapter.");
+    } finally {
+      finishChapterBtn.disabled = false;
+      finishChapterBtn.textContent = "✓ Finish Chapter";
+      await saveState();
+    }
+  }
+  
+  // Function 'startNewStory' removed as per user instruction.
+
+  window.updateMetadata = async function() {
+    let text = storyOutputEl.value.trim();
+    if(!text) return alert("Write some story text first to analyze.");
+
+    let btn = document.getElementById("updateMetadataBtn");
+    btn.disabled = true;
+    btn.textContent = "Analyzing...";
+    analyzingEl.hidden = false;
+
+    try {
+      let charsUpdated = await analyzeStoryForCharacters(text);
+      let settingsUpdated = await analyzeStoryForSettings(text);
+      let totalUpdated = charsUpdated + settingsUpdated;
+      
+      renderSidebar();
+      saveState();
+      
+      if(totalUpdated > 0) {
+        alert(`Updated ${totalUpdated} items in memory.`);
+      } else {
+        alert("No changes needed to memory.");
+      }
+
+    } catch (e) {
+      console.error(e);
+      alert("Could not analyze story. Please try again or add manually.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "📝 Update Memory";
+      analyzingEl.hidden = true;
+    }
+  }
+
+  // ==========================================
+  // Character Generator Logic
+  // ==========================================
+
+  window.editCharacterInGenerator = function(index) {
+    let char = characters[index];
+    charGenNameInput.value = char.name;
+    charGenInfoInput.value = char.description;
+    charGenOutputEl.value = `Name: ${char.name}\n${char.description}`;
+    charGenDraft = charGenOutputEl.value;
+    toggleCharGen();
+    charGenColumnEl.dataset.editingIndex = index;
+    saveState();
+  };
+  
+  window.generateCharacter = async function() {
+    let guideName = charGenNameInput.value.trim();
+    let guideInfo = charGenInfoInput.value.trim();
+    
+    charGenGenerateBtn.disabled = true;
+    charGenLoadingEl.hidden = false;
+    
+    try {
+      let memoryContext = buildMemoryContext();
+      
+      let prompt = "Create a detailed character profile for a story using the provided memory context as background information.\n\n";
+      prompt += "Context (Existing Story Elements):\n" + memoryContext + "\n\n";
+      
+      let editingIndex = charGenColumnEl.dataset.editingIndex;
+      if (editingIndex !== undefined) {
+        let existingChar = characters[editingIndex];
+        prompt += `Currently editing character: ${existingChar.name} - ${existingChar.description}\n\n`;
+        prompt += `INSTRUCTIONS: Expand upon and enhance this existing character's description. Keep the core traits but add new depth, details, and nuances.\n\n`;
+      }
+      
+      if (guideName || guideInfo) {
+        prompt += "User Guide Inputs:\n";
+        if (guideName) prompt += `- Name Suggestion: ${guideName}\n`;
+        if (guideInfo) prompt += `- Info/Details: ${guideInfo}\n`;
+        prompt += "\n";
+      }
+      
+      if (editingIndex === undefined) {
+        prompt += `INSTRUCTIONS:
+        - Create a character that fits seamlessly into the story context provided.
+        - If a specific name was suggested, use it or a very close variation.
+        - CRITICAL OUTPUT FORMAT: You must output the character profile in the exact format shown below (Name on line 1, empty line, physical description list, empty line, backstory list).
+        
+        Character Name
+
+        physical description:
+        -trait 1
+        -trait 2
+        -etc..
+
+        backstory/personality/motivations:
+        -trait 1
+        -trait 2
+        -etc..
+
+        Example:
+        John Doe
+
+        physical description:
+        -Tall and muscular
+        -Scar on left cheek
+        -Wears dark leather armor
+        -Has piercing blue eyes
+
+        backstory/personality/motivations:
+        -Former soldier seeking redemption
+        -Grim and stoic demeanor
+        -Motivated by the death of his sister
+        -Secretly kind to animals`;
+      } else {
+        prompt += `CRITICAL OUTPUT FORMAT: You must output the character profile in the exact format shown below. 
+        
+        Character Name
+
+        physical description:
+        -trait 1
+        -trait 2
+        -etc..
+
+        backstory/personality/motivations:
+        -trait 1
+        -trait 2
+        -etc..
+
+        Example:
+        John Doe
+
+        physical description:
+        -Tall and muscular
+        -Scar on left cheek
+        -Wears dark leather armor
+        -Has piercing blue eyes
+
+        backstory/personality/motivations:
+        -Former soldier seeking redemption
+        -Grim and stoic demeanor
+        -Motivated by the death of his sister
+        -Secretly kind to animals`;
+      }
+      
+      charGenOutputEl.value = "";
+      
+      await generateText({
+        instruction: prompt,
+        onChunk: (data) => {
+           charGenOutputEl.value += data.textChunk;
+           charGenOutputEl.scrollTop = charGenOutputEl.scrollHeight;
+        }
+      });
+      
+      charGenDraft = charGenOutputEl.value;
+      saveState();
+      
+    } catch (err) {
+      console.error("Char Gen Error:", err);
+      alert("Could not generate character.");
+    } finally {
+      charGenGenerateBtn.disabled = false;
+      charGenLoadingEl.hidden = true;
+    }
+  };
+  
+  window.addCharGenToMemory = function() {
+    let text = charGenOutputEl.value.trim();
+    if (!text) return alert("Generate or write a character profile first.");
+    
+    let name = "Unknown Character";
+    let desc = text;
+    
+    let splitIndex = text.indexOf("\n");
+    let firstLine = splitIndex > -1 ? text.substring(0, splitIndex).trim() : text.trim();
+    
+    if (firstLine.toLowerCase().startsWith("name:")) {
+      name = firstLine.replace(/^name:\s*/i, "").trim();
+    } else {
+      name = firstLine;
+    }
+    
+    desc = splitIndex > -1 ? text.substring(splitIndex + 1).trim() : "";
+    
+    let editingIndex = charGenColumnEl.dataset.editingIndex;
+    if (editingIndex !== undefined) {
+      characters[editingIndex].name = name;
+      characters[editingIndex].description = desc;
+      delete charGenColumnEl.dataset.editingIndex;
+      renderSidebar();
+      saveState();
+      alert(`Updated "${name}" in memory!`);
+      clearCharGen();
+      return;
+    }
+    
+    let existingIndex = characters.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+    if (existingIndex !== -1) {
+      if(confirm(`A character named "${name}" already exists. Update their description?`)) {
+        characters[existingIndex].description = desc;
+        renderSidebar();
+        saveState();
+        alert(`Updated "${name}" in memory!`);
+        clearCharGen();
+        return;
+      }
+    }
+    
+    characters.push({ name, description: desc });
+    renderSidebar();
+    saveState();
+    
+    alert(`Added "${name}" to memory!`);
+    clearCharGen();
+  };
+  
+  window.clearCharGen = function() {
+    charGenNameInput.value = "";
+    charGenInfoInput.value = "";
+    charGenOutputEl.value = "";
+    charGenDraft = "";
+    delete charGenColumnEl.dataset.editingIndex;
+    saveState();
+  };
+
+  // ==========================================
+  // Assistant Logic
+  // ==========================================
+
+  window.generateAssistantResponse = async function() {
+    let prompt = assistantInputEl.value.trim();
+    if (!prompt) return alert("Please enter a question or request for the assistant.");
+    
+    let includeMemory = assistantIncludeMemoryCheckbox.checked;
+    
+    assistantGenerateBtn.disabled = true;
+    assistantLoadingEl.hidden = false;
+    
+    let currentHistory = assistantOutputEl.value;
+    if (currentHistory.trim().length > 0) {
+      currentHistory += "\n\n---\n\n";
+    }
+    currentHistory += `User: ${prompt}\n\nAssistant: `;
+    
+    assistantOutputEl.value = currentHistory;
+    assistantDraft = currentHistory;
+    saveState();
+    
+    try {
+      let fullPrompt = "You are a helpful AI assistant for authors who are writing stories. ";
+      fullPrompt += "Your goal is to assist the author with brainstorming ideas, providing writing advice, analyzing plot elements, ";
+      fullPrompt += "suggesting improvements, answering questions about storytelling techniques, or any other assistance related to writing fiction. ";
+      fullPrompt += "Be helpful, creative, and provide practical advice.\n\n";
+      
+      fullPrompt += "CONVERSATION HISTORY:\n" + assistantOutputEl.value + "\n\n";
+      
+      if (includeMemory) {
+        let memoryContext = buildMemoryContext();
+        if (currentStoryText.trim()) {
+          memoryContext += "\n\nCurrent Story Draft:\n" + currentStoryText;
+        }
+        fullPrompt += "Story Context and Memory:\n" + memoryContext + "\n\n";
+      }
+      
+      fullPrompt += "Please respond to the last user message above.";
+      
+      await generateText({
+        instruction: fullPrompt,
+        onChunk: (data) => {
+           assistantOutputEl.value += data.textChunk;
+           assistantOutputEl.scrollTop = assistantOutputEl.scrollHeight;
+        }
+      });
+      
+      assistantDraft = assistantOutputEl.value;
+      saveState();
+      
+    } catch (err) {
+      console.error("Assistant Error:", err);
+      alert("Could not get assistant response.");
+    } finally {
+      assistantGenerateBtn.disabled = false;
+      assistantLoadingEl.hidden = true;
+      assistantInputEl.value = "";
+    }
+  };
+  
+  window.clearAssistantHistory = function() {
+    if(confirm("Are you sure you want to clear the conversation history?")) {
+      assistantOutputEl.value = "";
+      assistantDraft = "";
+      saveState();
+    }
+  };
+
+  // ==========================================
+  // Import/Export Logic
+  // ==========================================
+
+  window.exportFullStory = function() {
+    let fullStoryData = {
+      characters: characters,
+      settings: settings,
+      chapterSummaries: chapterSummaries,
+      currentStoryText: currentStoryText,
+      plot: plot,
+      themes: themesStr,
+      ideas: ideas,
+      negativePrompts: negativePrompts,
+      voice: voice,
+      bannedWords: bannedWords,
+      customSystemPrompt: customSystemPrompt,
+      selectedTheme: selectedTheme,
+      selectedBackgroundTheme: selectedBackgroundTheme,
+      selectedFontFamily: selectedFontFamily,
+      customFontMainColor: customFontMainColor,
+      customFontMutedColor: customFontMutedColor,
+      customBackgroundImage: customBackgroundImage,
+      customButtonColors: customButtonColors,
+      customBgColors: customBgColors,
+      currentLengthOption: currentLengthOption,
+      charGenDraft: charGenDraft,
+      assistantDraft: assistantDraft,
+      isLightMode: document.body.classList.contains("light-mode"),
+      collapsedSections: collapsedSections,
+      hasSeenTutorial: hasSeenTutorial,
+      exportDate: new Date().toISOString()
+    };
+
+    let jsonString = JSON.stringify(fullStoryData, null, 2);
+    let blob = new Blob([jsonString], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "full-story-backup.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  window.importFullStory = function(input) {
+    let file = input.files[0];
+    if (!file) return;
+
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        let importedData = JSON.parse(e.target.result);
+        applyStoryData(importedData);
+      } catch (err) {
+        console.error("Failed to import story:", err);
+        alert("Failed to import story. Please check that the file is a valid JSON file.");
+      }
+    };
+
+    reader.readAsText(file);
+    input.value = "";
+  };
+  
+  function applyStoryData(importedData) {
+    characters = importedData.characters || [];
+    settings = importedData.settings || [];
+    chapterSummaries = importedData.chapterSummaries || [];
+    currentStoryText = importedData.currentStoryText || "";
+    
+    if (importedData.plotAndIdeas) {
+        plot = importedData.plotAndIdeas;
+        themesStr = importedData.themes || "";
+        ideas = importedData.ideas || "";
+    } else {
+        plot = importedData.plot || "";
+        themesStr = importedData.themes || "";
+        ideas = importedData.ideas || "";
+    }
+    
+    negativePrompts = importedData.negativePrompts || "";
+    
+    voice = importedData.voice || "Default";
+    bannedWords = importedData.bannedWords || "";
+    customSystemPrompt = importedData.customSystemPrompt || "";
+
+    // UI Settings Import - Handle both old and new formats
+    if (importedData.customAccentColor && !importedData.selectedTheme && !importedData.customButtonColors) {
+      selectedTheme = "default";
+      themes.default.accent = importedData.customAccentColor;
+      themes.default.accentHover = adjustColorBrightness(importedData.customAccentColor, -20);
+    } else {
+      selectedTheme = importedData.selectedTheme || "default";
+    }
+
+    // Handle Custom Button Colors migration
+    if (importedData.customButtonColors) {
+      customButtonColors = importedData.customButtonColors;
+    } else if (importedData.customButtonColor) {
+      customButtonColors = { accent: importedData.customButtonColor, success: "", danger: "", warning: "" };
+    } else {
+      customButtonColors = { accent: "", success: "", danger: "", warning: "" };
+    }
+
+    // Background Theme Import
+    if (importedData.selectedBackgroundTheme) {
+      selectedBackgroundTheme = importedData.selectedBackgroundTheme;
+    } else if (importedData.isLightMode) {
+      selectedBackgroundTheme = "light";
+    } else {
+      selectedBackgroundTheme = "dark";
+    }
+
+    // Handle Custom Background Colors migration
+    if (importedData.customBgColors) {
+      customBgColors = importedData.customBgColors;
+    } else if (importedData.customBgColor) {
+      customBgColors = { body: importedData.customBgColor, panel: "", input: "" };
+    } else {
+      customBgColors = { body: "", panel: "", input: "" };
+    }
+
+    // Font Theme Import - Handle new format (separate from colors)
+    if (importedData.selectedFontFamily) {
+      selectedFontFamily = importedData.selectedFontFamily;
+    } else if (importedData.selectedFontTheme) {
+      // Migrate old font theme to just font family
+      selectedFontFamily = importedData.selectedFontTheme;
+    } else {
+      selectedFontFamily = "default";
+    }
+    
+    // Import font colors
+    customFontMainColor = importedData.customFontMainColor || "#f0f0f0";
+    customFontMutedColor = importedData.customFontMutedColor || "#a0a0a0";
+    
+    // Migration for old customFontColor
+    if (importedData.customFontColor && !importedData.customFontMainColor) {
+      customFontMainColor = importedData.customFontColor;
+    }
+
+    if (selectedBackgroundTheme === 'custom') {
+      applyCustomBackgroundTheme();
+    } else {
+      applyBackgroundTheme(selectedBackgroundTheme);
+    }
+
+    if (selectedTheme === 'custom') {
+      applyCustomButtonTheme();
+    } else {
+      applyTheme(selectedTheme);
+    }
+
+    applyFontSettings();
+    
+    customBackgroundImage = importedData.customBackgroundImage || "";
+
+    if (customBackgroundImage) {
+      document.body.style.backgroundImage = `url(${customBackgroundImage})`;
+      document.body.classList.add('has-custom-bg');
+      bgPreviewImg.src = customBackgroundImage;
+      bgPreviewContainer.style.display = 'block';
+      removeBgBtn.hidden = false;
+    } else {
+      document.body.style.backgroundImage = 'none';
+      document.body.classList.remove('has-custom-bg');
+      bgPreviewContainer.style.display = 'none';
+      bgPreviewImg.src = "";
+      removeBgBtn.hidden = true;
+      bgImageInput.value = "";
+    }
+
+    charGenDraft = importedData.charGenDraft || "";
+    assistantDraft = importedData.assistantDraft || "";
+    
+    if (typeof importedData.currentLengthOption === 'string') {
+      if (importedData.currentLengthOption.includes('unlimited')) {
+        currentLengthOption = { val: 3, unit: 'paragraphs', isUnlimited: true };
+      } else {
+        let parts = importedData.currentLengthOption.split(' ');
+        let val = parseInt(parts[0]) || 3;
+        let unit = parts.length > 1 ? parts[1].replace(/s$/, '') : 'paragraphs';
+        if (unit !== 'paragraphs' && unit !== 'sentences') unit = 'paragraphs';
+        currentLengthOption = { val: val, unit: unit, isUnlimited: false };
+      }
+    } else if (importedData.currentLengthOption) {
+      currentLengthOption = importedData.currentLengthOption;
+    } else {
+      currentLengthOption = { val: 3, unit: 'paragraphs', isUnlimited: false };
+    }
+
+    if (importedData.isLightMode) {
+        document.body.classList.add("light-mode");
+    } else {
+        document.body.classList.remove("light-mode");
+    }
+
+    if (importedData.collapsedSections) {
+        collapsedSections = importedData.collapsedSections;
+    }
+    
+    hasSeenTutorial = importedData.hasSeenTutorial || false;
+
+    storyOutputEl.value = currentStoryText;
+    plotInputEl.value = plot;
+    themesInputEl.value = themesStr;
+    ideasInputEl.value = ideas;
+    negativePromptsInputEl.value = negativePrompts;
+    
+    voiceInputEl.value = voice;
+    bannedWordsInputEl.value = bannedWords;
+    systemPromptInputEl.value = customSystemPrompt;
+    
+    charGenOutputEl.value = charGenDraft;
+    assistantOutputEl.value = assistantDraft;
+    
+    lengthNumberInput.value = currentLengthOption.val;
+    lengthUnitInput.value = currentLengthOption.unit;
+    lengthUnlimitedCheck.checked = currentLengthOption.isUnlimited;
+    updateLength();
+
+    renderThemeGrid();
+    renderBackgroundThemeGrid();
+    renderFontFamilyDropdown();
+    updateFontColorInputs();
+    renderSidebar();
+    renderSummaries();
+    renderFinishedChapters();
+    restoreCollapsedState();
+
+    saveState();
+  }
+
+  window.saveStory = function() {
+    if (chapterSummaries.length === 0) {
+      alert("No chapters to save yet!");
+      return;
+    }
+
+    let format = exportFormatSelect.value;
+    let content = "";
+    let mimeType = "text/plain";
+    let fileExtension = "txt";
+
+    if (format === "md") {
+      fileExtension = "md";
+      mimeType = "text/markdown";
+      chapterSummaries.forEach((chapter, index) => {
+        content += `# Chapter ${index + 1}: ${chapter.title}\n\n`;
+        content += `${chapter.text}\n\n`;
+        content += "---\n\n";
+      });
+    } else if (format === "html") {
+      fileExtension = "html";
+      mimeType = "text/html";
+      content += `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>My Story</title>\n<style>\nbody { font-family: 'Georgia', serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.7; color: #333; background-color: #fff; }\nh1 { border-bottom: 1px solid #ccc; padding-bottom: 10px; }\nhr { border: 0; border-top: 1px solid #eee; margin: 30px 0; }\n.chapter-content { white-space: pre-wrap; }\n</style>\n</head>\n<body>\n`;
+      
+      chapterSummaries.forEach((chapter, index) => {
+        content += `<h1>Chapter ${index + 1}: ${chapter.title}</h1>\n`;
+        let safeText = chapter.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        content += `<div class="chapter-content">${safeText}</div>\n`;
+        content += `<hr>\n`;
+      });
+      
+      content += `</body>\n</html>`;
+    } else {
+      chapterSummaries.forEach((chapter, index) => {
+        content += `CHAPTER ${index + 1}: ${chapter.title}\n\n`;
+        content += `${chapter.text}\n\n`;
+        content += "----------------------------------------\n\n";
+      });
+    }
+    
+    let blob = new Blob([content], { type: mimeType });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = `story.${fileExtension}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  
+  // ==========================================
+  // Local Storage Logic
+  // ==========================================
+  
+  function getCurrentStoryData() {
+    return {
+      characters: characters,
+      settings: settings,
+      chapterSummaries: chapterSummaries,
+      currentStoryText: currentStoryText,
+      plot: plot,
+      themes: themesStr,
+      ideas: ideas,
+      negativePrompts: negativePrompts,
+      voice: voice,
+      bannedWords: bannedWords,
+      customSystemPrompt: customSystemPrompt,
+      selectedTheme: selectedTheme,
+      selectedBackgroundTheme: selectedBackgroundTheme,
+      selectedFontFamily: selectedFontFamily,
+      customFontMainColor: customFontMainColor,
+      customFontMutedColor: customFontMutedColor,
+      customBackgroundImage: customBackgroundImage,
+      customButtonColors: customButtonColors,
+      customBgColors: customBgColors,
+      currentLengthOption: currentLengthOption,
+      charGenDraft: charGenDraft,
+      assistantDraft: assistantDraft,
+      isLightMode: document.body.classList.contains("light-mode"),
+      collapsedSections: collapsedSections,
+      hasSeenTutorial: hasSeenTutorial,
+      exportDate: new Date().toISOString()
+    };
+  }
+
+  window.saveLocally = async function() {
+    try {
+      let savedList = await kv.storyGenerator.get("localSavedStories") || [];
+      
+      if (savedList.length > 0) {
+        let overwriteOptions = "Select a story slot to overwrite, or click Cancel to create a new one:\n\n";
+        savedList.forEach((item, index) => {
+          overwriteOptions += `${index + 1}. ${item.name} (Saved: ${item.date})\n`;
+        });
+        overwriteOptions += "\nEnter the number of the story to overwrite, or click Cancel to save as new.";
+        
+        let choice = prompt(overwriteOptions);
+        
+        if (choice === null) {
+          createNewSavedStory(savedList);
+          return;
+        }
+        
+        let choiceNum = parseInt(choice);
+        if (!isNaN(choiceNum) && choiceNum >= 1 && choiceNum <= savedList.length) {
+          await overwriteSavedStory(savedList, savedList[choiceNum - 1]);
+        } else if (choice.trim() !== "") {
+          createNewSavedStory(savedList, choice.trim());
+        } else {
+          createNewSavedStory(savedList);
+        }
+      } else {
+        createNewSavedStory(savedList);
+      }
+    } catch (e) {
+      console.error("Failed to save locally:", e);
+      alert("Could not save story to local storage.");
+    }
+  };
+  
+  async function createNewSavedStory(savedList, providedName) {
+    let name = providedName || prompt("Enter a name for this saved story:");
+    if (!name) return;
+    
+    try {
+      let fullStoryData = getCurrentStoryData();
+      
+      let existingIndex = savedList.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+      if (existingIndex !== -1) {
+        if (!confirm(`A story named "${name}" already exists. Overwrite it?`)) {
+          return;
+        }
+        savedList[existingIndex] = {
+          id: savedList[existingIndex].id,
+          name: name,
+          data: fullStoryData,
+          date: new Date().toLocaleDateString()
+        };
+      } else {
+        savedList.unshift({
+          id: Date.now(),
+          name: name,
+          data: fullStoryData,
+          date: new Date().toLocaleDateString()
+        });
+      }
+      
+      await kv.storyGenerator.set("localSavedStories", savedList);
+      renderSavedStoriesList();
+      alert("Story saved locally!");
+    } catch (e) {
+      console.error("Failed to save story:", e);
+      alert("Could not save story.");
+    }
+  }
+  
+  async function overwriteSavedStory(savedList, existingStory) {
+    if (!confirm(`Overwrite "${existingStory.name}" with current story?`)) {
+      return;
+    }
+    
+    try {
+      let fullStoryData = getCurrentStoryData();
+      
+      let index = savedList.findIndex(item => item.id === existingStory.id);
+      if (index !== -1) {
+        savedList[index] = {
+          id: existingStory.id,
+          name: existingStory.name,
+          data: fullStoryData,
+          date: new Date().toLocaleDateString()
+        };
+      }
+      
+      await kv.storyGenerator.set("localSavedStories", savedList);
+      renderSavedStoriesList();
+      alert(`Overwrote "${existingStory.name}"!`);
+    } catch (e) {
+      console.error("Failed to overwrite story:", e);
+      alert("Could not overwrite story.");
+    }
+  }
+  
+  window.loadLocally = async function(id) {
+    if(!confirm("Are you sure? This will overwrite your current story with the saved version.")) return;
+    
+    try {
+      let savedList = await kv.storyGenerator.get("localSavedStories") || [];
+      let item = savedList.find(i => i.id === id);
+      
+      if (item && item.data) {
+        applyStoryData(item.data);
+        alert("Story loaded successfully!");
+      } else {
+        alert("Could not find saved story.");
+      }
+    } catch (e) {
+      console.error("Failed to load locally:", e);
+      alert("Could not load story from local storage.");
+    }
+  };
+  
+  window.deleteSavedStory = async function(id) {
+    if(!confirm("Are you sure you want to delete this saved story?")) return;
+    
+    try {
+      let savedList = await kv.storyGenerator.get("localSavedStories") || [];
+      savedList = savedList.filter(i => i.id !== id);
+      await kv.storyGenerator.set("localSavedStories", savedList);
+      renderSavedStoriesList();
+    } catch (e) {
+      console.error("Failed to delete story:", e);
+      alert("Could not delete story.");
+    }
+  };
+  
+  async function renderSavedStoriesList() {
+    let container = savedStoriesListEl;
+    if(!container) return;
+    
+    try {
+      let savedList = await kv.storyGenerator.get("localSavedStories") || [];
+      
+      if (savedList.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">No locally saved stories found.</div>';
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      savedList.forEach(item => {
+        let div = document.createElement('div');
+        div.style.cssText = "background: var(--bg-input); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;";
+        
+        div.innerHTML = `
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-weight: 600; color: var(--text-main); margin-bottom: 6px;">${item.name}</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Saved: ${item.date}</div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-shrink: 0;">
+            <button onclick="overwriteFromList(${item.id})" class="btn-warning">Overwrite</button>
+            <button onclick="loadLocally(${item.id})" class="btn-success">Load</button>
+            <button onclick="deleteSavedStory(${item.id})" class="btn-secondary" style="padding: 8px 12px;">&times;</button>
+          </div>
+        `;
+        
+        container.appendChild(div);
+      });
+    } catch (e) {
+      console.error("Failed to render saved stories:", e);
+      container.innerHTML = '<div style="color: var(--accent-danger); text-align: center; padding: 20px;">Error loading saved stories.</div>';
+    }
+    updateRandomGlows();
+  }
+  
+  window.overwriteFromList = async function(id) {
+    if(!confirm("Are you sure you want to overwrite this saved story with the current content?")) return;
+    
+    try {
+      let savedList = await kv.storyGenerator.get("localSavedStories") || [];
+      let item = savedList.find(i => i.id === id);
+      
+      if (item) {
+        let fullStoryData = getCurrentStoryData();
+        
+        let index = savedList.findIndex(i => i.id === id);
+        if (index !== -1) {
+          savedList[index] = {
+            id: item.id,
+            name: item.name,
+            data: fullStoryData,
+            date: new Date().toLocaleDateString()
+          };
+        }
+        
+        await kv.storyGenerator.set("localSavedStories", savedList);
+        renderSavedStoriesList();
+        alert(`Overwrote "${item.name}"!`);
+      } else {
+        alert("Could not find saved story.");
+      }
+    } catch (e) {
+      console.error("Failed to overwrite story:", e);
+      alert("Could not overwrite story.");
+    }
+  }
+
+  // ==========================================
+  // Reset / Clear Logic
+  // ==========================================
+
+  window.confirmStartOver = function() {
+    startOverDialogEl.showModal();
+  }
+
+  window.cancelStartOver = function() {
+    startOverDialogEl.close();
+  }
+
+  window.performStartOver = async function() {
+    currentStoryText = "";
+    storyOutputEl.value = "";
+    characters = [];
+    settings = [];
+    chapterSummaries = [];
+    plot = "";
+    themesStr = "";
+    ideas = "";
+    negativePrompts = "";
+    
+    voice = "Default";
+    bannedWords = "";
+    customSystemPrompt = "";
+    voiceInputEl.value = "Default";
+    bannedWordsInputEl.value = "";
+    systemPromptInputEl.value = "";
+    
+    charGenDraft = "";
+    assistantDraft = "";
+    plotInputEl.value = "";
+    themesInputEl.value = "";
+    ideasInputEl.value = "";
+    negativePromptsInputEl.value = "";
+    charGenOutputEl.value = "";
+    assistantOutputEl.value = "";
+    undoStack = [];
+
+    // Reset UI Settings - Reset themes to default
+    selectedTheme = "default";
+    customButtonColors = { accent: "", success: "", danger: "", warning: "" };
+    applyTheme("default");
+
+    selectedBackgroundTheme = "dark";
+    customBgColors = { body: "", panel: "", input: "" };
+    applyBackgroundTheme("dark");
+    
+    selectedFontFamily = "default";
+    customFontMainColor = "#f0f0f0";
+    customFontMutedColor = "#a0a0a0";
+    applyFontSettings();
+    
+    customBackgroundImage = "";
+    removeCustomBackground();
+    
+    currentLengthOption = { val: 3, unit: 'paragraphs', isUnlimited: false };
+    lengthNumberInput.value = 3;
+    lengthUnitInput.value = 'paragraphs';
+    lengthUnlimitedCheck.checked = false;
+    updateLength();
+
+    renderThemeGrid();
+    renderBackgroundThemeGrid();
+    renderFontFamilyDropdown();
+    updateFontColorInputs();
+    renderSidebar();
+    renderSummaries();
+    chaptersContainerEl.innerHTML = '';
+    
+    startOverDialogEl.close();
+    
+    await saveState();
+  }
+
+  window.resetPromptingOptions = function() {
+    if(confirm("Reset all prompting options to default?")) {
+      voice = "Default";
+      bannedWords = "";
+      customSystemPrompt = "";
+      voiceInputEl.value = "Default";
+      bannedWordsInputEl.value = "";
+      systemPromptInputEl.value = "";
+      saveState();
+    }
+  }
+
+  window.clearStoryText = function() {
+    if(confirm("Are you sure you want to clear the story text? This cannot be undone.")) {
+      currentStoryText = "";
+      storyOutputEl.value = "";
+      undoStack = [];
+      saveState();
+    }
+  };
+
+  window.clearFinishedChapters = function() {
+    if(confirm("Are you sure you want to clear all finished chapters from the main view? This cannot be undone.")) {
+      chaptersContainerEl.innerHTML = '';
+      saveState();
+    }
+  };
+
+  window.clearCharacters = function() {
+    if(confirm("Are you sure you want to clear all characters? This cannot be undone.")) {
+      characters = [];
+      renderSidebar();
+      saveState();
+    }
+  };
+
+  window.clearSettings = function() {
+    if(confirm("Are you sure you want to clear all locations? This cannot be undone.")) {
+      settings = [];
+      renderSidebar();
+      saveState();
+    }
+  };
+
+  window.clearChapters = function() {
+    if(confirm("Are you sure you want to clear all chapters? This cannot be undone.")) {
+      chapterSummaries = [];
+      renderSummaries();
+      chaptersContainerEl.innerHTML = '';
+      saveState();
+    }
+  };
+
+  window.clearMemory = function() {
+    if(confirm("Are you sure you want to clear memory (lore, themes, ideas)? Note: Negative prompts are now in the Prompting tab and will not be cleared here.")) {
+      plot = "";
+      themesStr = "";
+      ideas = "";
+      plotInputEl.value = "";
+      themesInputEl.value = "";
+      ideasInputEl.value = "";
+      saveState();
+    }
+  };
+
+  // Comment plugin initialization
+  let commentOptions = {
+    channel: "ultimate-story-generator-v2",
+    width: "100%",
+    height: "100%",
+    adminPasswordHash: "5e096bfcc3bc14773a15764438037d4b53917a4c87ab0d20b5a675a171600347",
+    adminFlair: "CREATOR",
+    deleteButtonIcon: "❌",
+    messageFeedStyle: "background:#1a1a1a;",
+    messageBubbleStyle: "background:#262626; border:2px solid #00004d; border-radius:10px; color:white;",
+    messageBubbleHoverStyle: "background:#00004d; border:2px solid navy; color:white;",
+    inputAreaStyle: "background:#3B3B3B; color:white;",
+    submitButtonStyle: "background:linear-gradient(90deg,rgba(0, 0, 0, 1) 0%, rgba(0, 5, 102, 1) 15%, rgba(0, 5, 102, 1) 85%, rgba(0, 0, 0, 1) 100%);border:0px;color:white;"
+  };
+  
+  commentsCtn.innerHTML = commentsPlugin(commentOptions);
+</script>
+[favicon("https://user-uploads.perchance.org/file/33d105140c674ff55b19ccdb7813de83.png")]
+</body>
+</html>
