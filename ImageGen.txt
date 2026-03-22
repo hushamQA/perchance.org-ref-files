@@ -1,0 +1,2286 @@
+
+===============================
+✅ محرر القوائم — List Editor
+===============================
+
+generateText = {import:ai-text-plugin}
+kv = {import:kv-plugin}
+image = {import:text-to-image-plugin}
+
+
+
+
+===============================
+✅ محرر HTML — HTML Editor
+===============================
+
+<!-- قالب بطاقة الصورة — batch image card -->
+<template id="t-card">
+  <div class="batch-card">
+    <div class="card-load"><div class="spinner"></div><span class="card-lbl">Generating…</span></div>
+    <img class="hidden" alt="">
+    <button class="cbtn tl" data-corner="heart"  title="Save options">❤️</button>
+    <button class="cbtn tr" data-corner="flag"   title="Report image">🚩</button>
+    <button class="cbtn bl" data-corner="prompt" title="View & edit prompts">📋</button>
+    <button class="cbtn br" data-corner="regen"  title="Regenerate">🔄</button>
+  </div>
+</template>
+
+<!-- قالب بطاقة الشخصية — character card -->
+<template id="t-char">
+  <div class="char-wrap">
+    <div class="char-card">
+      <div class="char-empty">
+        <div class="char-ei">👤</div>
+        <div class="char-en"></div>
+      </div>
+      <img class="hidden" alt="">
+      <button class="cbtn tr" data-cc="del"   title="Delete character">🗑️</button>
+      <button class="cbtn bl" data-cc="dna"   title="View DNA">📋</button>
+      <button class="cbtn br" data-cc="regen" title="Regenerate portrait">🔄</button>
+    </div>
+    <div class="char-name"></div>
+    <button class="btn-edit">✏️ Edit</button>
+  </div>
+</template>
+
+<div id="app">
+  <!-- ── Header ── -->
+  <header id="hdr">
+    <div class="logo">Image<em>Gen</em></div>
+    <span id="sb-dot"></span>
+    <span id="sb-txt">Ready</span>
+  </header>
+
+  <!-- ── Tab Bar ── -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="gen">🎨 Generate</button>
+    <button class="tab"        data-tab="lib">👤 Characters</button>
+  </div>
+
+  <!-- ════════════════ Generate Tab ════════════════ -->
+  <div id="tab-gen">
+    <div class="card">
+
+      <!-- كاست الشخصيات — cast panel -->
+      <div id="cast-panel" class="hidden">
+        <div class="tog-hd" id="cast-hd">
+          <span class="arr" id="cast-arr">▼</span>
+          🎭 Cast Characters
+          <span id="cast-badge" class="neg-note"></span>
+        </div>
+        <div class="tog-body" id="cast-body">
+          <div id="cast-list"></div>
+          <button class="btn-sm" id="btn-add-cast" style="margin-top:6px">+ Add Character</button>
+        </div>
+      </div>
+
+      <!-- Prompt -->
+      <div class="fg">
+        <div class="fl">
+          <span>Prompt</span>
+          <div class="btn-row">
+            <button class="btn-sm" id="btn-nsfw">🛡️ Safe</button>
+            <button class="btn-sm" id="btn-anatomy">🔧 Fix Deformities</button>
+            <button class="btn-sm" id="btn-enhance">✨ AI Enhance</button>
+          </div>
+        </div>
+        <textarea class="ft" id="prompt-in" rows="3" placeholder="Describe the image… (Ctrl+Enter to generate)"></textarea>
+        <div id="multi-badge" class="hidden">⚡ Multi-person anatomy boost active</div>
+      </div>
+
+      <!-- إعدادات متقدمة — advanced settings -->
+      <div class="tog-hd" id="set-hd">
+        <span class="arr" id="set-arr">▼</span>
+        Advanced Settings
+      </div>
+      <div class="tog-body" id="set-body">
+        <div class="row-2">
+          <div class="fg m0"><div class="fl"><span>Art Style</span></div><select class="fi" id="style-sel"></select></div>
+          <div class="fg m0"><div class="fl"><span>Genre / Theme</span></div><select class="fi" id="genre-sel"></select></div>
+        </div>
+        <div class="row-2" style="margin-top:var(--sm)">
+          <div class="fg m0"><div class="fl"><span>🔢 Count</span></div><select class="fi" id="count-sel"></select></div>
+          <div class="fg m0"><div class="fl"><span>🖼️ Shape</span></div><select class="fi" id="shape-sel"></select></div>
+        </div>
+        <div id="seed-row">
+          <label class="seed-lbl"><input type="checkbox" id="rand-seed" checked>Random seed</label>
+          <input class="fi" type="number" id="seed-in" placeholder="Seed…" min="0" max="999999" disabled>
+        </div>
+        <div class="tog-hd" id="neg-hd">
+          <span class="arr" id="neg-arr">▼</span>
+          Negative Prompt
+          <span id="neg-note" class="neg-note"></span>
+        </div>
+        <div class="tog-body" id="neg-body">
+          <textarea class="ft" id="neg-in" rows="2"></textarea>
+          <div class="tog-note">⚡ Medical, multi-person & NSFW terms appended automatically.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--sm)">
+        <button class="btn-gen" id="btn-gen">🎨 Generate Image</button>
+      </div>
+    </div>
+
+    <!-- نتيجة التوليد — result area -->
+    <div id="result-area">
+      <div id="result-ph">
+        <div class="ph-icon">✦</div>
+        <div class="ph-hint">Your image will appear here<br>Enter a prompt above and click Generate</div>
+      </div>
+      <div id="batch-grid" class="hidden"></div>
+    </div>
+
+    <!-- سجل الصور — history -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sm)">
+        <div class="fl" style="margin:0">History — <span id="hist-cnt">0</span> / <span id="hist-lim">40</span></div>
+        <button class="btn-sm" id="btn-clr-h">🗑 Clear All</button>
+      </div>
+      <div id="hist-grid"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════ Library Tab ════════════════ -->
+  <div id="tab-lib" class="hidden">
+
+    <!-- عرض الشبكة — grid view -->
+    <div id="lib-grid-v">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sm)">
+        <div class="fl" style="margin:0">Characters — <span id="lib-cnt">0</span> / 12</div>
+        <button class="btn-sm" id="btn-new-char">+ New Character</button>
+      </div>
+      <div id="lib-grid"></div>
+    </div>
+
+    <!-- عرض المحرر — editor view -->
+    <div id="lib-ed-v" class="hidden">
+      <button class="editor-back" id="btn-back">← Back to Library</button>
+      <div class="ed-layout">
+
+        <!-- العمود الأيسر: الصورتان — left: two portrait cards -->
+        <div class="ed-portrait"> 
+          <!-- بورتريه — bust portrait (1:1) -->
+            <div class="port-slot">
+              <div class="char-card" id="ep-card-bust">
+                <div class="char-empty" id="ep-empty-bust"><div class="char-ei">👤</div></div>
+                <img id="ep-img-bust" class="hidden" alt="">
+                <button class="cbtn tr" data-ecc="del-bust"   title="Remove portrait">🗑️</button>
+                <button class="cbtn bl" data-ecc="dl-bust"    title="Download portrait">📥</button>
+                <button class="cbtn br" data-ecc="regen-bust" title="Regenerate portrait">🔄</button>
+              </div>
+              <div class="port-lbl">Portrait</div>
+              <div class="port-progress" id="prog-bust"><div class="port-progress-bar" id="prog-bust-bar"></div></div>
+            </div>
+
+            <!-- كامل الجسم — full body (2:3) -->
+            <div class="port-slot">
+              <div class="char-card" id="ep-card-full" style="aspect-ratio:2/3">
+                <div class="char-empty" id="ep-empty-full"><div class="char-ei">🏃</div></div>
+                <img id="ep-img-full" class="hidden" alt="">
+                <button class="cbtn tr" data-ecc="del-full"   title="Remove full body">🗑️</button>
+                <button class="cbtn bl" data-ecc="dl-full"    title="Download full body">📥</button>
+                <button class="cbtn br" data-ecc="regen-full" title="Regenerate full body">🔄</button>
+              </div>
+              <div class="port-lbl">Full Body</div>
+              <div class="port-progress" id="prog-full"><div class="port-progress-bar" id="prog-full-bar"></div></div>
+            </div>
+          <div class="port-grid">
+
+
+          </div>
+          <button class="btn-gen-p" id="btn-gen-both">🎨 Generate Both</button>
+          <div id="ed-seed-row2">
+            <span class="seed-char-lbl">🎲 Seed</span>
+            <input class="fi" type="number" id="ed-seed2" min="0" max="999999" placeholder="Auto-assigned…">
+            <button class="btn-sm" id="btn-new-seed2" title="New random seed">🔀</button>
+          </div>
+        </div>
+
+        <!-- العمود الأيمن: النموذج — right: form -->
+        <div id="ed-form">
+
+          <!-- توليد عشوائي كامل — randomize all -->
+          <div style="display:flex;gap:6px;margin-bottom:var(--sm)">
+            <button class="btn-rand-all" id="btn-rand-all" style="flex:1">🎲 Randomize Character</button>
+            <button class="btn-sm" id="btn-respect-toggle" data-state="on" title="When ON: manually-set fields are not overwritten">🔒 Respect Manual</button>
+            <button class="btn-sm" id="btn-clear-form" title="Clear all fields">🗑️ Clear</button>
+          </div>
+
+          <!-- القسم 1: الهوية — Identity -->
+          <div class="sec-hd open" data-sec="identity">
+            <span class="arr open">▼</span> 👤 Identity
+            <button class="btn-rand" data-rand-sec="identity" title="Randomize Identity">🎲</button>
+          </div>
+          <div class="tog-body open" id="sec-identity">
+            <div class="fg"><div class="fl"><span>Name</span></div>
+              <input class="fi" type="text" id="ed-name" placeholder="Character name…">
+            </div>
+            <div class="row-2">
+              <div class="fg m0"><div class="fl"><span>Gender</span></div>
+                <select class="fi" id="ed-gender">
+                  <option value="woman">Woman</option>
+                  <option value="man">Man</option>
+                  <option value="nonbinary">Non-binary</option>
+                </select>
+              </div>
+              <div class="fg m0"><div class="fl"><span>Age</span></div>
+                <input class="fi" type="number" id="ed-age" placeholder="e.g. 25" min="18" max="99">
+              </div>
+            </div>
+            <div class="fg m0" style="margin-top:var(--sm)"><div class="fl"><span>Ethnicity</span></div><select class="fi" id="ed-ethnicity"></select></div>
+            <div class="row-2" style="margin-top:var(--sm)">
+              <div class="fg m0"><div class="fl"><span>Skin Tone</span></div><select class="fi" id="ed-skin"></select></div>
+              <div class="fg m0"><div class="fl"><span>Skin Texture</span></div><select class="fi" id="ed-skin-tex"></select></div>
+            </div>
+          </div>
+
+          <!-- القسم 2: الوجه — Face -->
+          <div class="sec-hd open" data-sec="face">
+            <span class="arr open">▼</span> 👁 Face
+            <button class="btn-rand" data-rand-sec="face" title="Randomize Face">🎲</button>
+          </div>
+          <div class="tog-body open" id="sec-face">
+            <div class="fg"><div class="fl"><span>Face Shape</span></div><select class="fi" id="ed-face-shape"></select></div>
+            <div class="row-2">
+              <div class="fg m0"><div class="fl"><span>Eye Color</span></div><select class="fi" id="ed-eye-color"></select></div>
+              <div class="fg m0"><div class="fl"><span>Eye Shape</span></div><select class="fi" id="ed-eye-shape"></select></div>
+            </div>
+            <div class="row-2" style="margin-top:var(--sm)">
+              <div class="fg m0"><div class="fl"><span>Hair Color</span></div><select class="fi" id="ed-hair-color"></select></div>
+              <div class="fg m0"><div class="fl"><span>Hair Length</span></div><select class="fi" id="ed-hair-length"></select></div>
+            </div>
+            <div class="fg" style="margin-top:var(--sm)"><div class="fl"><span>Hair Style</span></div><select class="fi" id="ed-hair-style"></select></div>
+            <div class="row-2">
+              <div class="fg m0"><div class="fl"><span>Eyebrows</span></div><select class="fi" id="ed-eyebrows"></select></div>
+              <div class="fg m0"><div class="fl"><span>Nose</span></div><select class="fi" id="ed-nose"></select></div>
+            </div>
+            <div class="fg" style="margin-top:var(--sm)"><div class="fl"><span>Lips</span></div><select class="fi" id="ed-lips"></select></div>
+            <div class="fg" style="margin-top:var(--sm)"><div class="fl"><span>Distinctive Marks</span></div><div class="tag-grp" id="ed-marks"></div></div>
+            <div class="fg" style="margin-top:var(--sm)"><div class="fl"><span>Accessories</span></div><div class="tag-grp" id="ed-accessories"></div></div>
+          </div>
+
+          <!-- القسم 3: الجسد — Body -->
+          <div class="sec-hd" data-sec="body">
+            <span class="arr">▼</span> 🏃 Body
+            <button class="btn-rand" data-rand-sec="body" title="Randomize Body">🎲</button>
+          </div>
+          <div class="tog-body" id="sec-body">
+            <div class="row-2">
+              <div class="fg m0"><div class="fl"><span>Height</span></div><select class="fi" id="ed-height"></select></div>
+              <div class="fg m0"><div class="fl"><span>Build</span></div><select class="fi" id="ed-build"></select></div>
+            </div>
+          </div>
+
+          <!-- القسم 4: ملاحظات إضافية — Extra Notes -->
+          <div class="sec-hd" data-sec="extra"><span class="arr">▼</span> ✏️ Extra Notes</div>
+          <div class="tog-body" id="sec-extra">
+            <textarea class="ft" id="ed-extra" rows="2" placeholder="Outfit, style, accessories, mood… appended to DNA prompt"></textarea>
+          </div>
+
+          <!-- البذرة الثابتة — fixed character seed -->
+          <div id="ed-seed-row">
+            <span class="seed-char-lbl">🎲 Character Seed</span>
+            <input class="fi" type="number" id="ed-seed" min="0" max="999999" placeholder="Auto-assigned…">
+            <button class="btn-sm" id="btn-new-seed" title="Generate new random seed">🔀</button>
+          </div>
+
+          <!-- معاينة DNA — DNA preview -->
+          <div style="margin-top:var(--sm)">
+            <div class="dna-lbl"><span>📄 DNA String</span><button class="btn-sm" id="btn-copy-dna">Copy</button></div>
+            <div class="dna-box" id="dna-preview">—</div>
+          </div>
+
+          <button class="btn-gen" id="btn-save-char" style="margin-top:var(--md)">💾 Save Character</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="g-popup" class="hidden"></div>
+<div id="lightbox" class="hidden">
+  <button class="lb-arrow" id="lb-prev">‹</button>
+  <img id="lb-img" alt="">
+  <button class="lb-arrow" id="lb-next">›</button>
+  <div id="lb-counter"></div>
+</div>
+
+<style>
+/* ══ :root — color library + all tokens ══ */
+:root {
+  --bg:#09090f; --s:#0d0d1a; --s2:#111120;
+  --b:#1c1c32; --b2:#262640;
+  --t:#ccc8e8; --td:#44425a; --tm:#1e1c30;
+  --gold:#e8a020; --gd:#7a4a10; --gb:#1a1000;
+  --grn:#10b981; --gd2:#041e12; --ghv:#06251a; --gb2:#0a3a1a;
+  --red:#ef4444; --rd:#1a0505; --rdim:#6b1010;
+  --pnk:#f472b6; --pd:#1a0510; --pdim:#7a1a4a;
+  --ov:#09090fd8; --ovh:#09090fed;
+  --xs:4px; --sm:16px; --md:24px; --lg:40px; --g:14px;
+  --r:6px; --rl:12px; --rp:50px;
+  --cbsz:30px; --dotsz:7px;
+  --sh:0 8px 32px var(--bg); --tr:.25s ease;
+}
+
+/* ── Reset ── */
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box }
+.hidden { display:none !important }
+
+/* ── Layout ── */
+body { background:var(--bg); color:var(--t); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; padding:var(--md) var(--sm) }
+#app { max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:var(--sm) }
+
+/* ── Header ── */
+#hdr { display:flex; align-items:center; gap:var(--sm); padding-bottom:var(--sm); border-bottom:1px solid var(--b) }
+.logo { font-size:18px; font-weight:800 }
+.logo em { color:var(--grn); font-style:normal }
+#sb-dot { width:var(--dotsz); height:var(--dotsz); border-radius:50%; background:var(--grn); margin-left:auto; flex-shrink:0; transition:background var(--tr) }
+#sb-dot[data-state="busy"] { background:var(--gold) }
+#sb-dot[data-state="err"]  { background:var(--red) }
+#sb-txt { font-size:11px; color:var(--td); max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+
+/* ── Tabs ── */
+.tab-bar { display:flex; border-bottom:1px solid var(--b) }
+.tab { padding:10px var(--sm); background:transparent; border:none; color:var(--td); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all var(--tr) }
+.tab:hover { color:var(--t) }
+.tab.active { color:var(--grn); border-bottom-color:var(--grn) }
+
+/* ── Card ── */
+.card { background:var(--s); border:1px solid var(--b); border-radius:var(--r); padding:var(--sm) }
+
+/* ── Form ── */
+.fl { font-size:10px; color:var(--td); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; display:flex; align-items:center; justify-content:space-between }
+.fg { margin-bottom:var(--sm) }
+.fg:last-child,.fg.m0 { margin-bottom:0 }
+.fi,.ft { width:100%; background:var(--s2); border:1px solid var(--b); color:var(--t); font-family:inherit; border-radius:var(--r); transition:border-color var(--tr) }
+.fi { font-size:12px; padding:7px 10px }
+.ft { font-size:13px; padding:10px 12px; resize:vertical; line-height:1.7 }
+.ft-sm { font-size:11px }
+.fi:focus,.ft:focus { outline:none; border-color:var(--gd) }
+.fi:disabled { opacity:.4; cursor:default }
+select.fi { cursor:pointer }
+.ft::placeholder { color:var(--tm); font-style:italic }
+
+/* ── Buttons ── */
+.btn-gen { width:100%; padding:13px; background:var(--gd2); border:1px solid var(--grn); color:var(--grn); font-size:14px; font-weight:700; cursor:pointer; border-radius:var(--rp); font-family:inherit; transition:all var(--tr); letter-spacing:.3px }
+.btn-gen:hover:not(:disabled) { background:var(--ghv); transform:translateY(-2px) }
+.btn-gen:disabled { opacity:.4; cursor:default; transform:none }
+.btn-sm { padding:4px 10px; background:transparent; border:1px solid var(--b); color:var(--td); font-size:10px; cursor:pointer; border-radius:var(--r); font-family:inherit; transition:all var(--tr); white-space:nowrap }
+.btn-sm:hover:not(:disabled) { border-color:var(--b2); color:var(--t) }
+.btn-sm:disabled { opacity:.3; cursor:default }
+.btn-gen-p { width:100%; padding:7px; background:var(--gd2); border:1px solid var(--grn); color:var(--grn); font-size:11px; cursor:pointer; border-radius:var(--r); font-family:inherit; transition:all var(--tr); margin-top:var(--xs) }
+.btn-gen-p:hover:not(:disabled) { background:var(--ghv) }
+.btn-gen-p:disabled { opacity:.4; cursor:default }
+.btn-edit { width:100%; padding:5px; background:transparent; border:1px solid var(--b); color:var(--td); font-size:10px; cursor:pointer; border-radius:var(--r); font-family:inherit; transition:all var(--tr) }
+.btn-edit:hover { border-color:var(--grn); color:var(--grn) }
+
+/* حالات الأزرار — button states via data-* */
+#btn-nsfw[data-state="on"]           { border-color:var(--rdim); color:var(--red); background:var(--rd) }
+#btn-nsfw                            { border-color:var(--gb2); color:var(--grn) }
+#btn-anatomy[data-state="on"]        { border-color:var(--gd); color:var(--gold); background:var(--gb) }
+#btn-respect-toggle[data-state="on"] { border-color:var(--gb2); color:var(--grn) }
+#btn-respect-toggle[data-state="off"]{ border-color:var(--rdim); color:var(--red) }
+
+/* ── Portrait Grid ── */
+.port-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--xs); margin-bottom:var(--xs) }
+.port-slot { display:flex; flex-direction:column; gap:3px }
+.port-lbl  { font-size:9px; color:var(--tm); text-align:center; text-transform:uppercase; letter-spacing:.3px }
+.port-slot .char-card { --cbsz:22px }
+.port-slot .cbtn      { font-size:11px }
+
+/* ── Portrait Progress Bar ── */
+.port-progress { height:3px; background:var(--b); border-radius:var(--rp); margin-top:3px; overflow:hidden; opacity:0; transition:opacity var(--tr) }
+.port-progress.active { opacity:1 }
+.port-progress-bar { height:100%; width:0%; background:var(--gold); border-radius:var(--rp); transition:width .4s ease }
+
+/* ── Randomize Buttons ── */
+.btn-rand { background:transparent; border:1px solid var(--gd); color:var(--gold); border-radius:var(--rp); padding:2px 7px; font-size:10px; cursor:pointer; margin-left:auto; flex-shrink:0; transition:all var(--tr); font-family:inherit }
+.btn-rand:hover:not(:disabled) { background:var(--gb) }
+.btn-rand:disabled { opacity:.3; cursor:default }
+.btn-rand-all { padding:7px; background:var(--gb); border:1px solid var(--gd); color:var(--gold); font-size:11px; font-weight:600; cursor:pointer; border-radius:var(--r); font-family:inherit; transition:all var(--tr) }
+.btn-rand-all:hover:not(:disabled) { filter:brightness(1.3) }
+.btn-rand-all:disabled { opacity:.4; cursor:default }
+
+/* ── Character Seed Row ── */
+#ed-seed-row { display:flex; align-items:center; gap:6px; margin-top:var(--sm) }
+.seed-char-lbl { font-size:10px; color:var(--td); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap }
+#ed-seed,#ed-seed2 { flex:1 }
+#ed-seed-row2 { display:flex; align-items:center; gap:6px; margin-top:var(--xs) }
+
+/* ── Cast Seed Badge ── */
+.cast-seed { font-size:9px; color:var(--gold); padding:1px 5px; background:var(--gb); border:1px solid var(--gd); border-radius:var(--r); flex-shrink:0 }
+
+/* ── Layout Helpers ── */
+.row-2   { display:grid; grid-template-columns:1fr 1fr; gap:var(--sm) }
+.btn-row { display:flex; gap:6px }
+
+/* ── Seed Row (scene) ── */
+#seed-row { display:flex; align-items:center; gap:var(--sm); margin-top:var(--sm) }
+.seed-lbl { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--td); cursor:pointer; white-space:nowrap; user-select:none }
+.seed-lbl input { accent-color:var(--grn) }
+#seed-in { width:140px; flex-shrink:0 }
+
+/* ── Multi Badge ── */
+#multi-badge { font-size:10px; color:var(--gold); border:1px solid var(--gd); background:var(--gb); border-radius:var(--r); padding:2px 8px; margin-top:6px; display:inline-flex; align-items:center; gap:5px }
+
+/* ── Collapsible ── */
+.tog-hd,.sec-hd { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--td); cursor:pointer; user-select:none; margin:var(--sm) 0 5px; text-transform:uppercase; letter-spacing:.5px }
+:is(.tog-hd,.sec-hd):hover { color:var(--t) }
+.arr { font-size:9px; transition:transform .2s; display:inline-block }
+.arr.open { transform:rotate(180deg) }
+.tog-body { display:none }
+.tog-body.open { display:block }
+.tog-note { font-size:9px; color:var(--tm); margin-top:4px }
+.neg-note { margin-left:auto; font-size:9px; color:var(--tm) }
+
+/* ── Result Area ── */
+#result-area { background:var(--s); border:1px solid var(--b); border-radius:var(--r); min-height:260px }
+#result-ph { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sm); padding:var(--lg); color:var(--td); min-height:260px }
+.ph-icon { font-size:40px }
+.ph-hint { font-size:11px; text-align:center; line-height:1.7; color:var(--tm) }
+#batch-grid { display:grid; gap:var(--xs); padding:var(--g) }
+
+/* ── Cards ── */
+.batch-card,.char-card { position:relative; border-radius:var(--r); background:var(--s2); border:1px solid var(--b); overflow:hidden }
+.batch-card:hover { z-index:5 }
+:is(.batch-card,.char-card) img { width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in }
+.char-card { aspect-ratio:1 }
+
+/* ── Overlays ── */
+.card-load,.card-err,.gen-ov { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--xs); z-index:10 }
+.card-load,.gen-ov { background:var(--ov) }
+.card-err { background:var(--ovh); padding:var(--sm); gap:6px }
+.gen-ov { z-index:30; pointer-events:none }
+.card-lbl,.gen-ov-lbl { font-size:10px; color:var(--gold); letter-spacing:.5px; text-transform:uppercase }
+.card-err-msg { font-size:10px; color:var(--red); text-align:center; line-height:1.6 }
+
+/* ── Corner Buttons ── */
+.cbtn { position:absolute; width:var(--cbsz); height:var(--cbsz); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; z-index:20; opacity:0; transition:opacity var(--tr),transform var(--tr); border-width:1px; border-style:solid }
+:is(.batch-card,.char-card):hover .cbtn { opacity:1 }
+.ed-portrait .char-card .cbtn { opacity:1 }
+.cbtn:hover { transform:scale(1.12) }
+.cbtn.tl { top:6px;    left:6px;  background:var(--pd);  border-color:var(--pdim); color:var(--pnk) }
+.cbtn.tr { top:6px;    right:6px; background:var(--rd);  border-color:var(--rdim); color:var(--red) }
+.cbtn.bl { bottom:6px; left:6px;  background:var(--gb);  border-color:var(--gd);   color:var(--gold) }
+.cbtn.br { bottom:6px; right:6px; background:var(--gd2); border-color:var(--gb2);  color:var(--grn) }
+
+/* ── Library Grid ── */
+#lib-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:var(--sm) }
+.char-wrap { display:flex; flex-direction:column; gap:6px }
+.char-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--xs) }
+.char-ei   { font-size:32px; color:var(--tm) }
+.char-en   { font-size:10px; color:var(--tm) }
+.char-name { font-size:11px; color:var(--td); text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.char-new  { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--xs); border:2px dashed var(--b); border-radius:var(--rl); aspect-ratio:1; cursor:pointer; transition:all var(--tr); color:var(--tm) }
+.char-new:hover { border-color:var(--grn); color:var(--grn) }
+.char-new-icon { font-size:28px }
+.char-new-lbl  { font-size:10px }
+
+/* ── Character Editor ── */
+.editor-back { display:flex; align-items:center; gap:var(--xs); background:transparent; border:none; color:var(--td); font-size:12px; cursor:pointer; font-family:inherit; transition:color var(--tr); padding:0; margin-bottom:var(--sm) }
+.editor-back:hover { color:var(--grn) }
+.ed-layout { display:grid; grid-template-columns:200px 1fr; gap:var(--sm); align-items:start }
+.ed-portrait { display:flex; flex-direction:column }
+.sec-hd { margin:10px 0 4px }
+.sec-hd:first-child { margin-top:0 }
+.dna-lbl { font-size:9px; color:var(--tm); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between }
+.dna-box { background:var(--s2); border:1px solid var(--b); border-radius:var(--r); padding:10px 12px; font-size:10px; color:var(--td); line-height:1.8; word-break:break-word; min-height:40px }
+
+/* ── Tags ── */
+.tag-grp { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px }
+.tag { padding:3px 8px; font-size:10px; border:1px solid var(--b); border-radius:var(--rp); color:var(--td); cursor:pointer; transition:all var(--tr); background:transparent; font-family:inherit }
+.tag:hover { border-color:var(--b2); color:var(--t) }
+.tag.on { border-color:var(--gd); color:var(--gold); background:var(--gb) }
+
+/* ── Cast ── */
+#cast-list { display:flex; flex-direction:column; gap:6px; margin-top:6px }
+.cast-entry { display:flex; align-items:center; gap:6px }
+.cast-thumb,.cast-ph { width:28px; height:28px; border-radius:var(--r); flex-shrink:0; border:1px solid var(--b) }
+.cast-thumb { object-fit:cover; background:var(--s2) }
+.cast-ph { background:var(--s2); display:flex; align-items:center; justify-content:center; font-size:13px }
+.cast-rm { padding:4px 8px; background:transparent; border:1px solid var(--b); color:var(--td); font-size:11px; cursor:pointer; border-radius:var(--r); flex-shrink:0; transition:all var(--tr) }
+.cast-rm:hover { border-color:var(--rdim); color:var(--red) }
+
+/* ── Popup ── */
+#g-popup { position:fixed; z-index:1000; background:var(--s2); border:1px solid var(--b2); border-radius:var(--rl); padding:var(--sm); min-width:200px; max-width:280px; box-shadow:var(--sh) }
+.pop-title { font-size:10px; color:var(--td); text-transform:uppercase; letter-spacing:.6px; margin-bottom:var(--xs); display:flex; align-items:center; justify-content:space-between }
+.pop-close { font-size:12px; cursor:pointer; color:var(--td); padding:2px 5px; border-radius:var(--r); transition:color var(--tr) }
+.pop-close:hover { color:var(--red) }
+.pop-row { display:flex; gap:6px; margin-bottom:6px }
+.pop-row:last-child { margin-bottom:0 }
+.pop-btn { flex:1; padding:8px 6px; font-size:11px; font-weight:600; text-align:center; border-radius:var(--r); cursor:pointer; border:1px solid var(--b2); background:var(--s); color:var(--td); font-family:inherit; transition:all var(--tr); white-space:nowrap }
+.pop-btn:hover { color:var(--t); background:var(--bg) }
+.pop-btn.grn { border-color:var(--gb2); color:var(--grn); background:var(--gd2) }
+.pop-btn.grn:hover { background:var(--ghv) }
+.pop-btn.gld { border-color:var(--gd); color:var(--gold); background:var(--gb) }
+.pop-btn.gld:hover { filter:brightness(1.3) }
+.pop-sect { font-size:9px; color:var(--td); text-transform:uppercase; letter-spacing:.5px; margin:var(--xs) 0 3px }
+.pop-ok  { font-size:9px; color:var(--grn); text-align:center; margin-top:4px }
+.pop-ty  { font-size:9px; color:var(--td) }
+.flag-opt { display:block; width:100%; padding:7px 10px; font-size:11px; border-radius:var(--r); cursor:pointer; background:var(--s); border:1px solid var(--b); color:var(--td); font-family:inherit; text-align:left; transition:all var(--tr); margin-bottom:5px }
+.flag-opt:last-child { margin-bottom:0 }
+.flag-opt:hover { border-color:var(--rdim); color:var(--red); background:var(--rd) }
+.flag-sent { font-size:11px; color:var(--grn); text-align:center; padding:var(--xs) 0 }
+.dna-pop-box { font-size:10px; color:var(--td); line-height:1.8; word-break:break-word; background:var(--s); border:1px solid var(--b); border-radius:var(--r); padding:8px 10px; margin-top:4px; max-height:160px; overflow-y:auto }
+
+/* ── Spinner ── */
+@keyframes spin { to { transform:rotate(360deg) } }
+.spinner,.spinner-sm { border-radius:50%; animation:spin .75s linear infinite; border-style:solid; border-color:var(--gd); border-top-color:var(--gold) }
+.spinner    { width:26px; height:26px; border-width:3px }
+.spinner-sm { width:18px; height:18px; border-width:2px }
+
+/* ── History ── */
+#hist-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:var(--xs); margin-top:var(--xs) }
+.hist-card { border:1px solid var(--b); border-radius:var(--r); overflow:hidden; cursor:pointer; transition:border-color var(--tr); position:relative; aspect-ratio:1 }
+.hist-card:hover { border-color:var(--grn) }
+.hist-card img { width:100%; height:100%; object-fit:cover; display:block; background:var(--s2) }
+.hist-del { position:absolute; top:3px; right:3px; padding:2px 6px; background:var(--ov); border:1px solid var(--b2); color:var(--td); font-size:9px; cursor:pointer; border-radius:3px; display:none }
+.hist-card:hover .hist-del { display:block }
+.hist-del:hover { color:var(--red); border-color:var(--red) }
+.hist-prompt { position:absolute; bottom:0; left:0; right:0; padding:4px 6px; background:var(--ov); font-size:8px; color:var(--td); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.hist-empty,.list-empty { font-size:11px; color:var(--tm); padding:4px 0 }
+
+/* ── Lightbox ── */
+#lightbox { position:fixed; inset:0; z-index:2000; background:var(--ovh); display:flex; align-items:center; justify-content:center; cursor:zoom-out }
+#lightbox img { max-width:82vw; max-height:90vh; object-fit:contain; border-radius:var(--r); transition:opacity .15s ease }
+.lb-arrow { position:fixed; top:50%; transform:translateY(-50%); background:var(--ov); border:1px solid var(--b2); color:var(--t); font-size:40px; line-height:1; width:52px; height:52px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all var(--tr); z-index:2001; user-select:none }
+.lb-arrow:hover { background:var(--ovh); color:var(--grn) }
+.lb-arrow:disabled { opacity:.15; cursor:default }
+#lb-prev { left:16px }
+#lb-next { right:16px }
+#lb-counter { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--td); background:var(--ov); padding:4px 12px; border-radius:var(--rp); z-index:2001 }
+
+/* ── Responsive ── */
+@media(max-width:640px) {
+  .row-2 { grid-template-columns:1fr }
+  #hist-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)) }
+  #seed-row { flex-wrap:wrap }
+  #seed-in { width:100% }
+  .ed-layout { grid-template-columns:1fr }
+  #lib-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)) }
+}
+</style>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════════════
+const CONFIG = {
+  IMG_LIMIT:  40,
+  HIST_KEY:   'sw_img_hist',
+  IMG_PFX:    'sw_img_',
+  CHAR_LIMIT: 12,
+  POPUP_GAP:  10,
+
+  ANATOMY_BOOST: '(correct number of fingers:1.45),(five fingers on each hand:1.4),(no extra fingers:1.45),(no missing fingers:1.4),(no extra limbs:1.45),(no missing limbs:1.4),(properly positioned limbs:1.4),(correct limb placement:1.4),(realistic normal human proportions:1.35),(no deformities:1.4),(no fused bodies:1.45),(independent anatomy per figure:1.4)',
+  NEG_BASE:  'extra fingers,extra hands,missing limbs,deformed anatomy,bad anatomy,mutated,deformed,disfigured,malformed limbs,poorly drawn face,poorly drawn hands,bad hands,extra limbs,missing arms,missing legs,fused fingers,too many fingers,bad proportions,cloned face,text,watermark,blurry,low quality,worst quality,jpeg artifacts,signature,cropped,duplicate,error',
+  NEG_MULTI: 'fused bodies,merged figures,conjoined bodies,multiple heads,extra heads,overlapping bodies,shared limbs,body fusion,merged arms,merged legs,siamese,two faces on one body',
+  NEG_NSFW:  'nudity,nude,naked,explicit,nsfw,sexual content,adult content,revealing clothing,inappropriate',
+  NEG_MED:   'visible veins,popping veins,exposed arteries,blood vessels,internal organs,exposed muscles,skinless,flayed,dissection,medical illustration,anatomical diagram,x-ray,cutaway view,transparent skin',
+
+  MULTI_RE: /\b(two|three|four|\d[\s]*people|\d[\s]*persons?|couple|pair|duo|trio|group|crowd|friends|siblings|lovers?|warriors?|soldiers?|together|hugging|holding hands|fighting|dancing|each other|beside|next to|alongside)\b/i,
+
+  SHAPES: {
+    portrait:  { w:512, h:768,  ratio:'2/3', label:'📱 Portrait (2:3)',   hint:'vertical portrait, tall composition' },
+    square:    { w:512, h:512,  ratio:'1/1', label:'⬛ Square (1:1)',     hint:'' },
+    landscape: { w:768, h:512,  ratio:'3/2', label:'🖥️ Landscape (3:2)', hint:'horizontal landscape, wide composition' },
+  },
+
+  COUNTS:    [1,2,4,6,8,10,12],
+  GRID_COLS: {1:1,2:2,4:2,6:3,8:4,10:5,12:4},
+
+  FLAG_REASONS: ['Sexually explicit content','Violent or graphic','Hateful or discriminatory','Depicts real person','Child safety concern','Other'],
+
+  CAST_ROLE_LBL: {
+    foreground: 'in the foreground',
+    left:       'on the left side',
+    right:      'on the right side',
+    background: 'in the background',
+    center:     'centered in scene',
+  },
+
+  // خريطة تحويل فعل المشهد → فعل الشخصية — scene verb → character action verbs
+  INTERACTION_MAP: [
+    [/fight|battl|attack|combat|clash|sword|punch|kick|strik|duel/i,
+     ['fighting aggressively','defending fiercely','striking with full force','blocking the blow','lunging forward with weapon raised','parrying the attack']],
+    [/run|chase|flee|escap|sprint|dash|pursu/i,
+     ['sprinting at full speed','chasing relentlessly','fleeing in panic','running alongside','rushing forward urgently']],
+    [/danc|sway|twirl|waltz|spin/i,
+     ['dancing gracefully','spinning with elegance','swaying in rhythm','twirling with poise','moving expressively to the music']],
+    [/hug|embrac|hold|kiss|touc|caress|cuddle/i,
+     ['embracing tenderly','holding close with care','reaching out warmly','leaning in with affection','wrapping arms around']],
+    [/talk|speak|argu|shout|whisper|discuss|convers|plead/i,
+     ['gesturing passionately while speaking','listening intently','arguing with raised voice','whispering urgently close','pointing emphatically']],
+    [/sit|rest|lean|relax|lounge|recline/i,
+     ['sitting at ease','leaning casually against','resting with relaxed posture','lounging comfortably']],
+    [/walk|stroll|march|stride|wander/i,
+     ['walking with purpose','striding confidently','marching forward','strolling side by side']],
+    [/look|watch|stare|gaze|observe/i,
+     ['gazing intently','watching with focused expression','staring with wide eyes','observing carefully']],
+    [/laugh|smile|cry|weep|scream|sob/i,
+     ['laughing openly','smiling warmly','crying with raw emotion','screaming in anguish','sobbing with grief']],
+  ],
+
+  // خريطة توجيه النظر حسب الحدث — gaze direction based on scene event
+  GAZE_MAP: [
+    [/fight|battl|attack|combat|clash|sword|punch|kick|duel/i,
+     'looking at opponent, eyes locked on enemy, intense combat gaze, not looking at camera'],
+    [/run|chase|flee|escap|sprint|dash/i,
+     'looking ahead in direction of movement, eyes forward, focused gaze away from camera'],
+    [/danc|sway|twirl|waltz/i,
+     'eyes closed or looking at dance partner, lost in movement, not facing camera'],
+    [/hug|embrac|hold|kiss|cuddle/i,
+     'looking at each other, eyes meeting partner, intimate gaze, not looking at camera'],
+    [/talk|speak|argu|shout|whisper|discuss/i,
+     'looking at conversation partner, engaged eye contact with other person, not at camera'],
+    [/sit|rest|lean|relax|lounge/i,
+     'looking into the distance, contemplative gaze, candid natural look, not posed for camera'],
+    [/walk|stroll|march|stride/i,
+     'looking ahead in walking direction, natural candid gaze, not at camera'],
+    [/look|watch|stare|gaze|observe/i,
+     'looking at the observed subject, focused directional gaze, eyes on target not camera'],
+    [/read|writ|draw|paint|work|study/i,
+     'looking down at work, concentrated gaze on task, absorbed in activity'],
+    [/laugh|smile|cry|weep|scream|sob/i,
+     'emotional expression eyes, gaze unfocused or skyward, raw candid emotion, not posed'],
+    [/cook|eat|drink|taste/i,
+     'looking at food or drink, focused on the activity, candid natural moment'],
+    [/think|dream|wonder|imagine/i,
+     'eyes looking up or to the side, distant thoughtful gaze, introspective look'],
+  ],
+
+  // قيود منسجمة مع العرق — per-ethnicity realistic feature constraints
+  ETHNICITY_CONTEXT: {
+    'east-asian':      { hairColor:['black','dark-brown','brown'],                                          eyeColor:['dark-brown','black','brown'] },
+    'southeast-asian': { hairColor:['black','dark-brown'],                                                  eyeColor:['dark-brown','black','brown'] },
+    'south-asian':     { hairColor:['black','dark-brown','brown'],                                          eyeColor:['dark-brown','black','brown','hazel'] },
+    'middle-eastern':  { hairColor:['black','dark-brown','brown','auburn'],                                 eyeColor:['dark-brown','black','brown','hazel','green'] },
+    'black-african':   { hairColor:['black','dark-brown'],                                                  eyeColor:['dark-brown','black','brown'] },
+    'white-european':  { hairColor:['black','dark-brown','brown','light-brown','dark-blonde','blonde','platinum','red','auburn'], eyeColor:['dark-brown','brown','hazel','amber','green','blue-green','blue','gray'] },
+    'hispanic':        { hairColor:['black','dark-brown','brown','light-brown','auburn'],                   eyeColor:['dark-brown','black','brown','hazel','amber','green'] },
+    'native-american': { hairColor:['black','dark-brown'],                                                  eyeColor:['dark-brown','black','brown','hazel'] },
+    'mixed':           { hairColor:null, eyeColor:null },  // null = no constraint
+  },
+
+  ART_STYLES: [
+    // ── واقعي / فوتوغرافي — Realistic / Photographic
+    ['',             'Default',            '(masterpiece:1.2), highly detailed, professional, sharp focus, 8k'],
+    ['cinematic',    '🎬 Cinematic',        'cinematic photography, (dramatic volumetric lighting:1.3), anamorphic lens, film grain, shallow depth of field, movie still, color graded'],
+    ['portrait-photo','📷 Portrait Photo',  'professional portrait photography, (bokeh background:1.2), soft rim lighting, studio strobe, 85mm lens, skin texture detail, photorealistic'],
+    ['documentary',  '🎞️ Documentary',     'documentary photography, candid moment, natural lighting, photojournalism, raw authentic atmosphere, grainy film texture'],
+
+    // ── رسم يدوي / تقليدي — Traditional / Hand-drawn
+    ['oil',          '🖼️ Oil Painting',    '(classical oil painting:1.3), impasto texture, rich pigments, canvas grain, old masters style, detailed brushwork, museum quality'],
+    ['watercolor',   '💧 Watercolor',      '(loose watercolor painting:1.3), wet-on-wet technique, translucent washes, paper texture, bleeding edges, delicate color gradients, white paper showing through'],
+    ['gouache',      '🎨 Gouache',         'opaque gouache illustration, flat graphic areas, matte finish, bold color blocking, textured paper, mid-century illustration style'],
+    ['charcoal',     '🖤 Charcoal',        '(charcoal drawing:1.3), dramatic chiaroscuro, rich blacks, smudged shading, textured paper, expressive mark-making, tonal study'],
+    ['ink',          '🖋️ Ink & Wash',      '(ink drawing:1.2), (ink wash:1.2), confident brushstrokes, spontaneous line quality, sumi-e influence, high contrast blacks, negative space'],
+    ['pencil',            '✏️ Pencil Sketch',        'detailed pencil sketch, (hatching and cross-hatching:1.2), graphite on paper, precise line work, tonal gradients, sketchbook aesthetic'],
+    
+    ['sketch-red',     '✏️🔴 Sketch — Red Accent',    '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid red:1.6), (only one specific element is red, everything else strictly black white gray:1.5), spot color technique, Schindler\'s List aesthetic'],
+    ['sketch-blue',    '✏️🔵 Sketch — Blue Accent',   '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid cobalt blue:1.6), (only one specific element is blue, everything else strictly black white gray:1.5), spot color technique'],
+    ['sketch-gold',    '✏️🟡 Sketch — Gold Accent',   '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid gold yellow:1.6), (only one specific element is golden, everything else strictly black white gray:1.5), spot color technique'],
+    ['sketch-green',   '✏️🟢 Sketch — Green Accent',  '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid emerald green:1.6), (only one specific element is green, everything else strictly black white gray:1.5), spot color technique'],
+    ['sketch-orange',  '✏️🟠 Sketch — Orange Accent', '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid orange:1.6), (only one specific element is orange, everything else strictly black white gray:1.5), spot color technique'],
+    ['sketch-purple',  '✏️🟣 Sketch — Purple Accent', '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid deep purple:1.6), (only one specific element is purple, everything else strictly black white gray:1.5), spot color technique'],
+    ['sketch-crimson', '✏️❤️ Sketch — Crimson Accent','(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in deep crimson red:1.6), (only one specific element is crimson, everything else strictly black white gray:1.5), spot color technique, film noir drama'],
+    ['sketch-teal',    '✏️🩵 Sketch — Teal Accent',   '(black and white pencil sketch:1.4), monochrome drawing, white paper background, graphite shading, ink outlines, entire image desaturated grayscale, (one single small detail colored in vivid teal:1.6), (only one specific element is teal, everything else strictly black white gray:1.5), spot color technique'],
+
+    ['pastel',       '🌸 Soft Pastel',     'soft pastel artwork, (powdery blended texture:1.2), luminous colors, gentle sfumato blending, warm atmospheric glow, impressionist touch'],
+    ['colored-pencil','🖍️ Colored Pencil', 'colored pencil illustration, (layered burnishing technique:1.2), visible stroke texture, rich saturated hues, meticulous detail'],
+
+    // ── رقمي — Digital
+    ['digital-paint','🖥️ Digital Painting','(digital painting:1.3), painterly brushwork, Photoshop aesthetic, dynamic lighting, color theory mastery, concept art quality'],
+    ['matte-paint',  '🌄 Matte Painting',  'cinematic matte painting, (photobashed:1.2), epic scale, atmospheric perspective, hyper-detailed environment, VFX production quality'],
+    ['pixel',        '👾 Pixel Art',        '(pixel art:1.4), crisp pixels, limited color palette, retro game aesthetic, 16-bit style, no anti-aliasing, dithering technique'],
+    ['vector',       '📐 Vector',           '(vector illustration:1.3), geometric precision, flat design, bold clean outlines, scalable art style, graphic design aesthetic'],
+
+    // ── مانغا / أنمي — Manga / Anime
+    ['anime',        '🌸 Anime',            '(anime art style:1.3), key visual quality, vibrant colors, clean crisp linework, cel shading, studio animation quality'],
+    ['manga',        '📖 Manga',            '(manga illustration:1.3), screentone texture, expressive black and white linework, dynamic panel composition, ink hatching, Japanese comic art'],
+    ['chibi',        '🐾 Chibi',            '(chibi art style:1.3), super-deformed proportions, oversized head, tiny body, kawaii aesthetic, pastel colors, cute exaggerated expression'],
+    ['webtoon',      '📱 Webtoon',          'webtoon art style, (clean digital lineart:1.2), Korean manhwa aesthetic, soft cel shading, modern character design, vertical comic format'],
+
+    // ── رسوم — Illustration
+    ['storybook',    '📚 Storybook',        '(children\'s book illustration:1.3), warm inviting colors, whimsical charm, soft rounded forms, narrative storytelling quality, picture book aesthetic'],
+    ['comic',        '🦸 Comic Book',       '(comic book art:1.3), bold ink outlines, Ben-Day dots, dynamic action composition, Marvel/DC style, dramatic foreshortening, halftone texture'],
+    ['concept-art',  '🎭 Concept Art',      '(concept art:1.3), production design quality, exploratory sketching, value study, silhouette clarity, entertainment industry standard'],
+    ['retro-poster', '🎪 Retro Poster',     '(vintage poster illustration:1.3), art deco typography aesthetic, limited color palette, flat graphic shapes, 1950s commercial art style'],
+    ['gothic',       '🕸️ Gothic',           '(dark gothic illustration:1.3), ornate decorative details, macabre elegance, chiaroscuro contrast, Victorian aesthetic, intricate linework'],
+
+    // ── ثلاثي الأبعاد — 3D
+    ['3d-render',    '🏛️ 3D Render',        '(3D render:1.3), octane render quality, subsurface scattering, physically based materials, photorealistic lighting, ambient occlusion, 8k resolution'],
+    ['clay',         '🧸 Clay / Claymation','(claymation style:1.3), stop motion aesthetic, visible fingerprints texture, soft clay material, warm studio lighting, Laika studio quality'],
+    ['lowpoly',      '🔷 Low Poly',         '(low poly 3D:1.3), geometric faceted surfaces, flat shading, triangulated mesh aesthetic, minimal clean design, isometric perspective'],
+    ['voxel',        '🟫 Voxel',            '(voxel art:1.3), cubic 3D pixels, Minecraft aesthetic, isometric view, saturated block colors, game asset quality'],
+  ],
+
+  GENRES: [
+    ['', '— No Genre —', ''],
+
+    // ── رعب / توتر — Horror / Thriller
+    ['horror',        '👻 Horror',             '(dark horror atmosphere:1.3), oppressive shadows, eerie fog, unsettling silence, desaturated cold palette, dread-inducing composition, sinister undertones'],
+    ['psychological', '🧠 Psychological',       '(psychological thriller:1.3), surreal distorted reality, fragmented perspective, tense claustrophobic framing, muted unsettling tones, paranoid atmosphere'],
+    ['gothic',        '🦇 Gothic Horror',       '(gothic horror setting:1.3), crumbling Victorian architecture, gargoyles, candlelight flickering, deep crimson and black palette, baroque ornamental detail'],
+    ['supernatural',  '👁️ Supernatural',        '(supernatural atmosphere:1.3), ethereal glowing anomalies, spectral light trails, reality-bending visual distortion, liminal uncanny space'],
+
+    // ── غموض / جريمة — Mystery / Crime
+    ['mystery',       '🔍 Noir Mystery',        '(film noir atmosphere:1.3), hard-boiled detective aesthetic, venetian blind shadow patterns, rain-slicked streets, low-key chiaroscuro lighting, 1940s urban grit'],
+    ['thriller',      '🎯 Thriller',            '(thriller tension:1.3), high-stakes urgency, dramatic dutch angle, stark contrast lighting, motion blur tension, cinematic suspense composition'],
+
+    // ── خيال — Fantasy
+    ['fantasy',       '🧙 High Fantasy',        '(epic high fantasy:1.3), grand magical kingdoms, towering castles, mystical creatures, ancient runes glowing, sweeping dramatic landscapes, heroic scale'],
+    ['dark-fantasy',  '🌑 Dark Fantasy',        '(dark fantasy:1.3), corrupted magic, blighted cursed landscapes, twisted medieval architecture, brooding atmosphere, grimdark aesthetic'],
+    ['fairy-tale',    '🧚 Fairy Tale',          '(enchanted fairy tale:1.3), whimsical magical forest, glowing fireflies, pastel dream palette, soft ethereal light, storybook wonder, magical realism'],
+    ['mythological',  '⚡ Mythological',        '(ancient mythology:1.3), divine celestial scale, olympian grandeur, classical sculpture aesthetic, dramatic god-light rays, epic heroic narrative'],
+
+    // ── خيال علمي — Science Fiction
+    ['scifi',         '🚀 Sci-Fi',              '(science fiction:1.3), sleek futuristic technology, bioluminescent interfaces, zero-gravity environment, hard light specular surfaces, interstellar scale'],
+    ['cyberpunk',     '🌃 Cyberpunk',           '(cyberpunk:1.3), neon-drenched rain-soaked megacity, holographic advertisements, chrome implants, dense urban sprawl, 2049 aesthetic, blade runner atmosphere'],
+    ['solarpunk',     '🌿 Solarpunk',           '(solarpunk:1.3), utopian green technology, lush vertical gardens integrated with architecture, warm golden sunlight, optimistic sustainable future aesthetic'],
+    ['space-opera',   '🌌 Space Opera',         '(space opera:1.3), vast cosmic scale, alien civilizations, nebula-lit starfields, massive space stations, epic interstellar conflict, Star Wars grandeur'],
+    ['biopunk',       '🧬 Biopunk',             '(biopunk:1.3), organic technology fusion, living architecture, genetically engineered creatures, visceral biological aesthetic, wet organic textures'],
+
+    // ── تاريخي / حقبي — Historical / Period
+    ['historical',    '📜 Historical',          '(historical period setting:1.3), archaeologically accurate costume and architecture, period-authentic lighting, aged patina textures, documentary realism'],
+    ['ancient',       '🏛️ Ancient World',       '(ancient civilization:1.3), Egyptian/Greek/Roman grandeur, monumental stone architecture, ceremonial atmosphere, sun-bleached stone, fresco-inspired palette'],
+    ['medieval',      '⚔️ Medieval',            '(medieval setting:1.3), feudal castle architecture, cobblestone streets, flickering torchlight, armor and heraldry, muddy authentic village life'],
+    ['renaissance',   '🎭 Renaissance',         '(Renaissance setting:1.3), Florentine artistic grandeur, sfumato atmospheric perspective, rich merchant city aesthetic, classical architecture revival'],
+    ['victorian',     '🎩 Victorian',           '(Victorian era:1.3), gaslit London streets, industrial steam machinery, ornate Gothic Revival architecture, sepia tinted foggy atmosphere'],
+    ['roaring20s',    '🥂 Roaring Twenties',    '(1920s Art Deco:1.3), jazz age glamour, geometric gold ornamentation, speakeasy atmosphere, flapper fashion, warm amber champagne tones'],
+
+    // ── مغامرة / حركة — Adventure / Action
+    ['adventure',     '⚔️ Adventure',           '(epic adventure:1.3), dramatic heroic scale, sweeping vistas, dynamic action composition, golden hour lighting, sense of vast unexplored world'],
+    ['western',       '🤠 Western',             '(spaghetti western:1.3), sun-scorched desert landscape, dust storms, dramatic golden hour shadows, weathered wood saloon, Leone-style extreme close-up tension'],
+    ['pirate',        '🏴‍☠️ Pirate',             '(swashbuckling pirate:1.3), storm-lashed galleon deck, treasure-filled caverns, sea spray, tattered sails, Caribbean turquoise waters, adventurous spirit'],
+    ['exploration',   '🗺️ Exploration',         '(age of exploration:1.3), uncharted wilderness, vast untouched landscapes, sense of discovery, natural wonder scale, adventure documentary aesthetic'],
+
+    // ── ما بعد الكارثة — Post-Apocalyptic
+    ['post-apoc',     '☢️ Post-Apocalyptic',    '(post-apocalyptic:1.3), reclaimed-by-nature ruins, radiation dust atmosphere, makeshift survivor settlements, desaturated palette with rust and ash'],
+    ['dystopian',     '🏚️ Dystopian',           '(dystopian society:1.3), totalitarian surveillance architecture, oppressive brutalist structures, propaganda imagery, grey dehumanizing urban landscape'],
+    ['steampunk',     '⚙️ Steampunk',           '(steampunk:1.3), Victorian-era steam technology, intricate brass clockwork machinery, airship docks, copper pipe aesthetics, coal-fire amber atmosphere'],
+    ['dieselpunk',    '✈️ Dieselpunk',          '(dieselpunk:1.3), WWII-era retro-futurism, diesel-powered machinery, industrial noir palette, propaganda poster aesthetic, gritty mechanical world'],
+
+    // ── معاصر / حضري — Contemporary / Urban
+    ['urban',         '🏙️ Urban',              '(contemporary urban:1.3), modern metropolitan energy, architectural glass and steel, street-level human scale, golden hour city glow, cinematic realism'],
+    ['slice-of-life', '☕ Slice of Life',       '(slice of life:1.2), quiet intimate everyday moments, warm domestic lighting, soft natural window light, emotional authenticity, subtle storytelling'],
+    ['sports',        '🏆 Sports',             '(dynamic sports:1.3), peak athletic action frozen in time, stadium crowd atmosphere, motion blur energy, dramatic floodlight contrast, competitive intensity'],
+
+    // ── رومانسي / عاطفي — Romance / Emotional
+    ['romance',       '💕 Romance',            '(romantic atmosphere:1.3), golden hour soft bokeh, tender intimate framing, warm rose and amber palette, emotional vulnerability, cinematic love story'],
+    ['drama',         '🎭 Drama',              '(emotional drama:1.3), raw human vulnerability, expressive natural lighting, tight character-focused composition, method acting authenticity, cinematic realism'],
+
+        // ── طبيعة / بيئة — Nature / Environment
+    ['nature',        '🌿 Nature',             '(pristine nature:1.3), lush atmospheric landscape, dappled forest light, macro natural detail, National Geographic quality, biophilic wonder'],
+    ['underwater',    '🌊 Underwater',         '(underwater world:1.3), bioluminescent deep sea, caustic light patterns, coral reef ecosystem, weightless suspended motion, aquamarine blue palette'],
+    ['arctic',        '❄️ Arctic',             '(arctic wilderness:1.3), vast frozen tundra, aurora borealis dancing sky, ice crystal formations, extreme isolation, blue-white desaturated palette'],
+
+    // ── D/s dynamics (محسنة بنفس المستوى)
+    ['submission',    '🖤 Submission',        '(complete surrender:1.3), delicate submission pose, bowed head and exposed vulnerability, soft shadow play on skin, intimate power contrast, cinematic moody lighting, deep blacks and warm skin tones'],
+    ['control',       '⛓️ Control',           '(absolute control:1.3), firm guiding grip, restrained elegance, deliberate tension in posture, leather and silk juxtaposition, low key chiaroscuro lighting, dominant crimson + charcoal palette'],
+    ['obedience',     '🩹 Obedience',         '(devoted obedience:1.3), kneeling service posture, reverent gaze upward, ritualistic devotion atmosphere, soft diffused rim light, porcelain skin + warm candle glow, minimalist elegant composition'],
+    ['sensation',     '🌸 Sensation',         '(pure sensation:1.3), intense tactile close-up, goosebumps and trembling anticipation, delicate sensory overload, macro skin texture detail, dreamy pastel haze, warm golden-hour intimate lighting'],
+
+        // ── أوضاع جنسية / Sexual Positions (محدثة بنفس المستوى)
+
+    ['cowgirl',       '🐎 Cowgirl',            '(riding cowgirl:1.3), straddling dominant mount, hands pressing chest or gripping shoulders, arched back ecstasy curve, eye-locked intensity, warm golden-hour side lighting, rich amber + deep shadow palette, sensual power exchange'],
+    ['doggy',         '🖤 Doggy Style',        '(primal doggy:1.3), rear-entry arched posture, gripping hips or hair pull tension, exposed vulnerability from behind, low-angle dramatic perspective, moody rim light silhouette, crimson flush skin + charcoal shadows, raw animalistic energy'],
+    ['missionary',    '💞 Missionary',         '(intimate missionary:1.3), face-to-face deep connection, legs wrapped around waist, slow grinding rhythm, foreheads touching tenderness, soft diffused candle glow, warm peach skin tones + gentle highlights, emotional closeness + passion'],
+    ['spooning',      '🥄 Spooning',           '(cozy spooning:1.3), side-by-side entwined bodies, gentle rear entry embrace, hand caressing breast or throat, relaxed intimate curve, warm bedroom ambient light, soft sepia + creamy skin palette, comforting possessive closeness'],
+    ],
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// CHAR_DNA
+// ══════════════════════════════════════════════════════════════════════
+// ── قراءة القوائم من محرر القوائم — read lists from List Editor ──
+// كل عنصر بصيغة "value||label||token" — each item: "value||label||token"
+// يُملأ في INIT بعد تحميل القوائم — populated in INIT after lists load
+const CHAR_DNA = {
+  GENDER:    [['woman','Woman','woman'],['man','Man','man'],['nonbinary','Non-binary','androgynous person']],
+  ETHNICITY: [
+    ['','— Select —',''],['east-asian','East Asian','East Asian ethnicity'],
+    ['southeast-asian','Southeast Asian','Southeast Asian'],['south-asian','South Asian','South Asian'],
+    ['middle-eastern','Middle Eastern','Middle Eastern'],['black-african','Black / African','Black African'],
+    ['white-european','White / European','Caucasian European'],['hispanic','Hispanic / Latino','Hispanic Latino'],
+    ['native-american','Native American','Native American'],['mixed','Mixed Heritage','mixed heritage'],
+  ],
+  SKIN: [
+    ['','— Select —',''],['porcelain','Porcelain','porcelain skin, very fair complexion'],
+    ['fair','Fair','fair skin, light complexion'],['light','Light','light skin tone'],
+    ['medium','Medium','medium skin tone'],['olive','Warm Olive','warm olive skin, Mediterranean complexion'],
+    ['tan','Tan','tan skin, sun-kissed complexion'],['brown','Brown','warm brown skin'],
+    ['deep-brown','Deep Brown','deep brown skin'],['ebony','Ebony','rich ebony skin'],
+  ],
+  SKIN_TEX: [
+    ['','— None —',''],['clear','Clear','clear skin'],['freckled','Freckled','freckled skin texture'],
+    ['matte','Matte','matte skin'],['luminous','Luminous','luminous glowing skin'],
+  ],
+  FACE_SHAPE: [
+    ['','— Select —',''],['oval','Oval','oval face, balanced proportions'],
+    ['round','Round','round face, soft jawline'],['square','Square','square face, strong jawline'],
+    ['heart','Heart','heart-shaped face, soft chin'],['diamond','Diamond','diamond face, high cheekbones'],
+    ['oblong','Oblong','long oblong face'],
+  ],
+  EYE_COLOR: [
+    ['','— Select —',''],['dark-brown','Dark Brown','dark brown eyes'],['brown','Brown','brown eyes'],
+    ['hazel','Hazel','hazel eyes'],['amber','Amber','amber eyes'],['green','Green','green eyes'],
+    ['blue-green','Blue-Green','blue-green eyes'],['blue','Blue','blue eyes'],['gray','Gray','gray eyes'],
+    ['black','Black','black eyes'],
+  ],
+  EYE_SHAPE: [
+    ['','— Select —',''],['almond','Almond','almond-shaped eyes'],['round','Round','round eyes'],
+    ['hooded','Hooded','hooded eyes'],['upturned','Upturned','upturned eyes'],
+    ['downturned','Downturned','downturned eyes'],['monolid','Monolid','monolid eyes'],
+    ['deep-set','Deep-set','deep-set eyes'],
+  ],
+  HAIR_COLOR: [
+    ['','— Select —',''],['black','Black','black hair'],['dark-brown','Dark Brown','dark brown hair'],
+    ['brown','Brown','brown hair'],['light-brown','Light Brown','light brown hair'],
+    ['dark-blonde','Dark Blonde','dark blonde hair'],['blonde','Blonde','blonde hair'],
+    ['platinum','Platinum','platinum blonde hair'],['red','Red','red hair'],['auburn','Auburn','auburn hair'],
+    ['silver','Silver/Gray','silver hair'],['white','White','white hair'],
+  ],
+  HAIR_LENGTH: [
+    ['','— Select —',''],['shaved','Shaved','shaved head'],['very-short','Very Short','very short hair'],
+    ['short','Short','short hair'],['ear-length','Ear-length','ear-length hair'],
+    ['chin-length','Chin-length','chin-length hair'],['shoulder','Shoulder-length','shoulder-length hair'],
+    ['mid-back','Mid-Back','mid-back length hair'],['long','Long','long hair'],
+    ['very-long','Very Long','very long hair past waist'],
+  ],
+  HAIR_STYLE: [
+    ['','— Select —',''],['straight','Straight','straight hair'],['slight-waves','Slight Waves','slightly wavy hair'],
+    ['wavy','Wavy','wavy hair'],['curly','Curly','curly hair'],['coily','Coily','coily hair'],
+    ['afro','Afro','natural afro hair'],['bangs','With Bangs','hair with bangs'],
+    ['updo','Updo/Bun','hair in updo bun'],['ponytail','Ponytail','ponytail hairstyle'],
+    ['braids','Braids','braided hair'],
+  ],
+  EYEBROWS: [
+    ['','— Select —',''],['thin','Thin','thin eyebrows'],['medium','Medium','medium eyebrows'],
+    ['thick','Thick','thick eyebrows'],['arched','Arched','arched eyebrows'],
+    ['straight','Straight','straight flat eyebrows'],['bushy','Bushy','bushy expressive eyebrows'],
+  ],
+  NOSE: [
+    ['','— Skip —',''],['small','Small','small delicate nose'],['button','Button','button nose'],
+    ['straight','Straight','straight nose'],['broad','Broad','broad nose'],
+    ['aquiline','Aquiline','aquiline hawk nose'],['snub','Snub','snub nose'],
+  ],
+  LIPS: [
+    ['','— Skip —',''],['thin','Thin','thin lips'],['medium','Medium','medium lips'],
+    ['full','Full','full lips'],['pouty','Pouty','pouty lips'],
+    ['wide','Wide','wide mouth'],['cupids-bow',"Cupid's Bow","defined Cupid's bow lips"],
+  ],
+  HEIGHT: [
+    ['','— Select —',''],['short','Short','short stature'],['below-avg','Below Average','below average height'],
+    ['average','Average Height','average height'],['tall','Tall','tall figure'],['very-tall','Very Tall','very tall stature'],
+  ],
+  BUILD: [
+    ['','— Select —',''],['slim','Slim','slim build'],['lean','Lean','lean athletic build'],
+    ['average','Average','average build'],['athletic','Athletic','athletic muscular build'],
+    ['curvy','Curvy','curvy figure'],['stocky','Stocky','stocky build'],['heavy','Heavy','heavyset build'],
+    ['muscular','Muscular','heavily muscular build'],
+  ],
+  MARKS: [
+    ['freckles','Freckles','light freckles'],['heavy-freckles','Heavy Freckles','heavy freckles across face'],
+    ['mole-cheek','Mole (cheek)','small mole on cheek'],['mole-lip','Mole (near lip)','beauty mark near lip'],
+    ['scar-face','Facial Scar','small scar on face'],['dimples','Dimples','charming dimples'],
+    ['cleft-chin','Cleft Chin','cleft chin'],
+  ],
+  ACCESSORIES: [
+    ['glasses','Glasses','wearing glasses'],['sunglasses','Sunglasses','wearing sunglasses'],
+    ['earrings','Earrings','wearing earrings'],['stud-earrings','Stud Earrings','small stud earrings'],
+    ['nose-ring','Nose Ring','small nose ring'],['tattoo-neck','Neck Tattoo','visible neck tattoo'],
+    ['tattoo-arm','Arm Tattoo','arm tattoo visible'],
+  ],
+  CAST_ROLES: [
+    ['foreground','Foreground'],['left','Left Side'],['right','Right Side'],
+    ['background','Background'],['center','Center'],
+  ],
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════════
+const STATE = {
+  busy:          false,
+  nsfw:          false,
+  anatomy:       false,
+  respectManual: true,   // يحترم المدخلات اليدوية — respect manually-set fields on randomize
+  cast:          [],
+  editingChar:   null,
+  activeCard:    null,
+};
+
+const EL = {};
+
+
+// ══════════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════════
+const UTILS = {
+  isMulti:   p  => CONFIG.MULTI_RE.test(p),
+  genKey:    () => `${CONFIG.IMG_PFX}${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
+  toOptions: map => map.map(([v, l]) => `<option value="${v}">${l}</option>`).join(''),
+  randSeed:  () => Math.floor(Math.random() * 999_999),
+
+  buildPositive(raw, styleKey, genreKey, shapeKey, forceMulti = false) {
+    const style = CONFIG.ART_STYLES.find(a => a[0] === styleKey)?.[2] ?? '';
+    const genre = CONFIG.GENRES.find(g => g[0] === genreKey)?.[2]     ?? '';
+    const hint  = CONFIG.SHAPES[shapeKey]?.hint ?? '';
+    const multi = (forceMulti || UTILS.isMulti(raw))
+      ? '(distinct separate individuals:1.2),(individual anatomy per figure:1.2),(clear space between each figure:1.1)'
+      : '';
+    const anat = STATE.anatomy ? CONFIG.ANATOMY_BOOST : '';
+    return [raw.trim(), genre, style, hint, '(highly detailed:1.2),(4k:1.1),sharp focus', multi, anat]
+      .filter(Boolean).join(', ');
+  },
+
+  // استخرج فعل الشخصية المناسب من نص المشهد — extract character action from scene text
+  extractAction(scenePrompt, charIdx) {
+    for (const [re, actions] of CONFIG.INTERACTION_MAP)
+      if (re.test(scenePrompt)) return actions[charIdx % actions.length];
+    return null;
+  },
+
+  // استخرج توجيه النظر من نص المشهد — extract gaze direction from scene text
+  extractGaze(scenePrompt) {
+    for (const [re, gaze] of CONFIG.GAZE_MAP)
+      if (re.test(scenePrompt)) return `(${gaze}:1.2)`;
+    // افتراضي عند عدم وجود حدث — default: avoid direct camera stare
+    return '(natural candid gaze, not staring at camera:1.1)';
+  },
+
+  // FIX: المشهد أولاً ← الشخصيات كفاعلين ← DNA — scene first, characters as active participants
+  buildCastPositive(rawPrompt, styleKey, genreKey, shapeKey) {
+    if (!STATE.cast.length)
+      return UTILS.buildPositive(rawPrompt, styleKey, genreKey, shapeKey);
+
+    const charParts = [], dnaParts = [];
+    let hasAction = false;
+
+    STATE.cast.forEach((e, i) => {
+      const ch  = CHAR_STORE.get(e.charId); if (!ch) return;
+      const dna = CHAR.buildDNA(ch.dna ?? {}); if (!dna) return;
+      const nm  = ch.name || `person ${i + 1}`;
+      const action  = UTILS.extractAction(rawPrompt, i);
+      const roleLbl = CONFIG.CAST_ROLE_LBL[e.role] ?? 'in scene';
+
+      if (action) {
+        // شخصية فاعلة في الحدث — character actively participating in the event
+        charParts.push(`(${nm} ${action} ${roleLbl}:1.1)`);
+        hasAction = true;
+      } else {
+        charParts.push(`(${nm} ${roleLbl}:1.05)`);
+      }
+      // DNA بوزن أقل — أقواس عادية بدل مربعة لتجنب Perchance list syntax
+      dnaParts.push(`(${nm} appearance: ${dna})`);
+    });
+
+    const interactionBoost = hasAction
+      ? '(characters actively interacting:1.2),(dynamic action pose:1.15),(physically engaged:1.1),(expressive body language:1.1)'
+      : '';
+
+    // توجيه النظر حسب الحدث — gaze direction based on scene event
+    const gazeDir = UTILS.extractGaze(rawPrompt);
+
+    // ترتيب: المشهد أولاً ← الشخصيات الفاعلة ← DNA ← تعزيز التفاعل ← توجيه النظر
+    const full = [
+      rawPrompt.trim(),
+      charParts.join(', '),
+      dnaParts.join(', '),
+      interactionBoost,
+      gazeDir,
+    ].filter(Boolean).join(', ');
+
+    return UTILS.buildPositive(full, styleKey, genreKey, shapeKey, STATE.cast.length >= 2);
+  },
+
+  buildNegative(raw, userNeg) {
+    const base  = userNeg.trim() || CONFIG.NEG_BASE;
+    const multi = UTILS.isMulti(raw) ? ',' + CONFIG.NEG_MULTI : '';
+    const nsfw  = STATE.nsfw ? '' : ',' + CONFIG.NEG_NSFW;
+    return base + multi + nsfw + ',' + CONFIG.NEG_MED;
+  },
+
+  extractSrc(raw) {
+    if (!raw) return null;
+    const tag = raw?.tagName?.toUpperCase?.();
+    if (tag === 'IMG') return raw.src || null;
+    if (tag) { const n = raw.querySelector?.('img'); if (n) return n.src || null; }
+    if (raw?.imageId)
+      return `https://image-generation.perchance.org/api/downloadTemporaryImage?imageId=${raw.imageId}&fileExtension=${raw.fileExtension ?? 'jpeg'}`;
+    if (typeof raw === 'string') {
+      const m = raw.match(/src=["']([^"']+)["']/); if (m) return m[1];
+      if (/^(https?:|blob:|data:)/.test(raw.trim())) return raw.trim();
+    }
+    if (typeof raw === 'object') {
+      for (const k of ['src','url','imageUrl','image_url','href','dataUrl','data_url'])
+        if (typeof raw[k] === 'string' && raw[k].length > 4) return raw[k];
+    }
+    return null;
+  },
+
+  async toDataUrl(src) {
+    if (!src || src.startsWith('data:')) return src;
+    try {
+      const blob = await (await fetch(src, { mode:'cors' })).blob();
+      return await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onloadend = () => res(r.result);
+        r.onerror   = rej;
+        r.readAsDataURL(blob);
+      });
+    } catch { return src; }
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// STORE
+// ══════════════════════════════════════════════════════════════════════
+const STORE = {
+  get:  k    => { try { return k ? localStorage.getItem(k) : null; } catch { return null; } },
+  del:  k    => { try { if (k) localStorage.removeItem(k); } catch {} },
+  set(k, v) {
+    try {
+      const keys = Object.keys(localStorage).filter(x => x.startsWith(CONFIG.IMG_PFX));
+      if (keys.length >= CONFIG.IMG_LIMIT)
+        keys.sort().slice(0, keys.length - CONFIG.IMG_LIMIT + 1).forEach(x => localStorage.removeItem(x));
+      localStorage.setItem(k, v);
+    } catch(e) { console.warn('STORE.set:', e); }
+  },
+  histLoad:      () => { try { return JSON.parse(localStorage.getItem(CONFIG.HIST_KEY) ?? '[]'); } catch { return []; } },
+  histSave: list => { try { localStorage.setItem(CONFIG.HIST_KEY, JSON.stringify(list)); } catch {} },
+  histAdd(entry) {
+    const list = STORE.histLoad();
+    if (list.some(e => e.key === entry.key)) return;
+    list.unshift(entry);
+    if (list.length > CONFIG.IMG_LIMIT) STORE.del(list.splice(CONFIG.IMG_LIMIT)[0]?.key);
+    STORE.histSave(list);
+  },
+  histDel: key => { STORE.del(key); STORE.histSave(STORE.histLoad().filter(e => e.key !== key)); },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// CHAR_STORE
+// ══════════════════════════════════════════════════════════════════════
+const CHAR_STORE = {
+  KEY:     'clib_chars',
+  IMG_PFX: 'clib_img_',
+
+  list()   { try { return JSON.parse(localStorage.getItem(CHAR_STORE.KEY) ?? '[]'); } catch { return []; } },
+  save(ch) { try { localStorage.setItem(CHAR_STORE.KEY, JSON.stringify(ch)); } catch(e) { console.warn(e); } },
+  get(id)  { return CHAR_STORE.list().find(c => c.id === id) ?? null; },
+
+  upsert(char) {
+    const list = CHAR_STORE.list();
+    const idx  = list.findIndex(c => c.id === char.id);
+    if (idx >= 0) list[idx] = char; else list.push(char);
+    CHAR_STORE.save(list);
+  },
+
+  delete(id) {
+    const char = CHAR_STORE.get(id);
+    for (const k of [char?.portraitKey, char?.fullbodyKey])
+      if (k) { try { localStorage.removeItem(k); } catch {} }
+    CHAR_STORE.save(CHAR_STORE.list().filter(c => c.id !== id));
+    STATE.cast = STATE.cast.filter(e => e.charId !== id);
+  },
+
+  setPortrait(charId, dataUrl) {
+    const key  = `${CHAR_STORE.IMG_PFX}${charId}_bust`;
+    try { localStorage.setItem(key, dataUrl); } catch(e) { console.warn(e); }
+    const char = CHAR_STORE.get(charId);
+    if (char) { char.portraitKey = key; CHAR_STORE.upsert(char); }
+    return key;
+  },
+
+  getPortrait(charId) {
+    const char = CHAR_STORE.get(charId);
+    if (!char?.portraitKey) return null;
+    try { return localStorage.getItem(char.portraitKey); } catch { return null; }
+  },
+
+  setFullbody(charId, dataUrl) {
+    const key  = `${CHAR_STORE.IMG_PFX}${charId}_full`;
+    try { localStorage.setItem(key, dataUrl); } catch(e) { console.warn(e); }
+    const char = CHAR_STORE.get(charId);
+    if (char) { char.fullbodyKey = key; CHAR_STORE.upsert(char); }
+    return key;
+  },
+
+  getFullbody(charId) {
+    const char = CHAR_STORE.get(charId);
+    if (!char?.fullbodyKey) return null;
+    try { return localStorage.getItem(char.fullbodyKey); } catch { return null; }
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// CHAR
+// ══════════════════════════════════════════════════════════════════════
+const CHAR = {
+  buildDNA(data) {
+    const tok = (map, val) => map.find(x => x[0] === val)?.[2] ?? '';
+    const pts = [];
+
+    const age    = data.age ? `${data.age} year old` : '';
+    const gender = tok(CHAR_DNA.GENDER, data.gender);
+    if (age || gender) pts.push([age, gender].filter(Boolean).join(' '));
+
+    const et = tok(CHAR_DNA.ETHNICITY, data.ethnicity);  if (et) pts.push(et);
+    const sk = tok(CHAR_DNA.SKIN,      data.skin);        if (sk) pts.push(sk);
+    const st = tok(CHAR_DNA.SKIN_TEX,  data.skinTex);     if (st) pts.push(st);
+    const fs = tok(CHAR_DNA.FACE_SHAPE,data.faceShape);   if (fs) pts.push(fs);
+
+    const eyeC = tok(CHAR_DNA.EYE_COLOR, data.eyeColor);
+    const eyeS = tok(CHAR_DNA.EYE_SHAPE, data.eyeShape);
+    if (eyeC || eyeS) pts.push([eyeS, eyeC].filter(Boolean).join(' '));
+
+    const hC = tok(CHAR_DNA.HAIR_COLOR,  data.hairColor);
+    const hL = tok(CHAR_DNA.HAIR_LENGTH, data.hairLength);
+    const hS = tok(CHAR_DNA.HAIR_STYLE,  data.hairStyle);
+    if (hC || hL || hS) pts.push([hS, hL, hC].filter(Boolean).join(' '));
+
+    const br = tok(CHAR_DNA.EYEBROWS, data.eyebrows); if (br) pts.push(br);
+    const no = tok(CHAR_DNA.NOSE,     data.nose);      if (no) pts.push(no);
+    const lp = tok(CHAR_DNA.LIPS,     data.lips);      if (lp) pts.push(lp);
+    const ht = tok(CHAR_DNA.HEIGHT,   data.height);    if (ht) pts.push(ht);
+    const bd = tok(CHAR_DNA.BUILD,    data.build);     if (bd) pts.push(bd);
+
+    (data.marks       ?? []).forEach(m => { const t = tok(CHAR_DNA.MARKS,       m); if (t) pts.push(t); });
+    (data.accessories ?? []).forEach(a => { const t = tok(CHAR_DNA.ACCESSORIES, a); if (t) pts.push(t); });
+
+    if (data.extra?.trim()) pts.push(data.extra.trim());
+
+    return pts.join(', ');
+  },
+
+  buildPortraitPrompt(char) {
+    const dna  = CHAR.buildDNA(char.dna ?? {});
+    const name = char.name ? `${char.name}, ` : '';
+    return `character portrait, ${name}${dna}, front facing, neutral expression, plain light background, studio lighting, consistent character reference, (highly detailed:1.2), sharp focus`;
+  },
+
+  buildFullbodyPrompt(char) {
+    const dna  = CHAR.buildDNA(char.dna ?? {});
+    const name = char.name ? `${char.name}, ` : '';
+    return `character model sheet, full body turnaround, ${name}${dna}, front view and 3/4 view and back view, neutral standing pose, white background, flat studio lighting, consistent character reference, (highly detailed:1.2), sharp focus`;
+  },
+
+  newData: () => ({
+    id:          `char_${Date.now()}_${Math.random().toString(36).slice(2,5)}`,
+    name:        '',
+    portraitKey: null,
+    fullbodyKey: null,
+    seed:        UTILS.randSeed(),
+    dna: {
+      gender:'woman', age:'', ethnicity:'', skin:'', skinTex:'', faceShape:'',
+      eyeColor:'', eyeShape:'', hairColor:'', hairLength:'', hairStyle:'',
+      eyebrows:'', nose:'', lips:'', height:'', build:'',
+      marks:[], accessories:[],
+      extra:'',
+    },
+  }),
+
+  readForm() {
+    const g = id => document.getElementById(id)?.value ?? '';
+    return {
+      gender:      EL.edGender?.value ?? 'woman',
+      age:         g('ed-age'),
+      ethnicity:   g('ed-ethnicity'),
+      skin:        g('ed-skin'),
+      skinTex:     g('ed-skin-tex'),
+      faceShape:   g('ed-face-shape'),
+      eyeColor:    g('ed-eye-color'),
+      eyeShape:    g('ed-eye-shape'),
+      hairColor:   g('ed-hair-color'),
+      hairLength:  g('ed-hair-length'),
+      hairStyle:   g('ed-hair-style'),
+      eyebrows:    g('ed-eyebrows'),
+      nose:        g('ed-nose'),
+      lips:        g('ed-lips'),
+      height:      g('ed-height'),
+      build:       g('ed-build'),
+      marks:       [...document.querySelectorAll('#ed-marks .tag.on')].map(t => t.dataset.val),
+      accessories: [...document.querySelectorAll('#ed-accessories .tag.on')].map(t => t.dataset.val),
+      extra:       g('ed-extra'),
+    };
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════════════════════════════════
+const UI = {
+  setStatus(text, type = 'ready') {
+    EL.sbDot.dataset.state = type;
+    EL.sbTxt.textContent   = text;
+  },
+
+  updateMultiBadge: p => EL.multiBadge.classList.toggle('hidden', !UTILS.isMulti(p)),
+
+  updateNsfwBtn() {
+    EL.btnNsfw.textContent   = STATE.nsfw ? '🔞 No Filter' : '🛡️ Safe';
+    EL.btnNsfw.dataset.state = STATE.nsfw ? 'on' : '';
+    EL.negNote.textContent   = STATE.nsfw ? '⚠️ filter off' : '';
+  },
+
+  showPlaceholder(show) {
+    EL.resultPh.classList.toggle('hidden', !show);
+    EL.batchGrid.classList.toggle('hidden', show);
+  },
+
+  setupGrid(count, shape) {
+    EL.batchGrid.innerHTML = '';
+    EL.batchGrid.style.gridTemplateColumns = `repeat(${CONFIG.GRID_COLS[count] ?? 4}, 1fr)`;
+    const tmpl = document.getElementById('t-card');
+    for (let i = 0; i < count; i++) {
+      const card = tmpl.content.cloneNode(true).firstElementChild;
+      card.style.aspectRatio = shape.ratio;
+      EL.batchGrid.appendChild(card);
+    }
+    UI.showPlaceholder(false);
+  },
+
+  fillCard(card, key) {
+    const src = STORE.get(key); if (!src) return;
+    card.querySelector('.card-load')?.remove();
+    card.querySelector('.gen-ov')?.remove();
+    const img = card.querySelector('img');
+    img.src = src; img.classList.remove('hidden');
+    img.onclick = () => UI.openLightbox(key);
+  },
+
+  showCardError(card, msg) {
+    card.querySelector('.card-load')?.remove();
+    card.querySelector('.gen-ov')?.remove();
+    const el = document.createElement('div');
+    el.className = 'card-err';
+    el.innerHTML = `<span>⚠️</span><div class="card-err-msg">${msg}</div>`;
+    card.prepend(el);
+  },
+
+  showCardRegen(card) {
+    card.querySelector('.gen-ov')?.remove();
+    card.querySelector('img')?.classList.add('hidden');
+    const ov = document.createElement('div');
+    ov.className = 'gen-ov';
+    ov.innerHTML = '<div class="spinner-sm"></div><span class="gen-ov-lbl">Regenerating…</span>';
+    card.appendChild(ov);
+  },
+
+  // بناء قائمة الصور المتاحة للتصفح — build navigable image list from current context
+  _buildGallery(key) {
+    // حقق مصدر الصورة — detect image source context
+    if (key.startsWith('clib_img_')) {
+      // صور المكتبة — library portraits
+      const keys = CHAR_STORE.list().flatMap(c =>
+        [c.portraitKey, c.fullbodyKey].filter(Boolean)
+      );
+      return keys.length ? keys : [key];
+    }
+    // صور الـ batch grid الحالية — current batch grid
+    const batchKeys = [...document.querySelectorAll('.batch-card[data-key]')]
+      .map(c => c.dataset.key).filter(Boolean);
+    if (batchKeys.includes(key)) return batchKeys;
+    // صور السجل — history images
+    const histKeys = STORE.histLoad().map(e => e.key).filter(k => STORE.get(k));
+    if (histKeys.includes(key)) return histKeys;
+    return [key];
+  },
+
+  openLightbox(key) {
+    const gallery = UI._buildGallery(key);
+    const idx     = gallery.indexOf(key);
+    UI._lbGallery = gallery;
+    UI._lbIdx     = idx >= 0 ? idx : 0;
+    UI._lbShow();
+    EL.lightbox.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  },
+
+  _lbShow() {
+    const gallery = UI._lbGallery;
+    const idx     = UI._lbIdx;
+    const key     = gallery[idx];
+    const src     = key.startsWith('clib_img_') ? localStorage.getItem(key) : STORE.get(key);
+    if (src) EL.lbImg.src = src;
+    EL.lbPrev.disabled    = idx === 0;
+    EL.lbNext.disabled    = idx === gallery.length - 1;
+    EL.lbCounter.textContent = gallery.length > 1 ? `${idx + 1} / ${gallery.length}` : '';
+  },
+
+  lbNav(dir) {
+    const next = UI._lbIdx + dir;
+    if (next < 0 || next >= UI._lbGallery.length) return;
+    UI._lbIdx = next;
+    EL.lbImg.style.opacity = '0';
+    setTimeout(() => { UI._lbShow(); EL.lbImg.style.opacity = '1'; }, 150);
+  },
+
+  closeLightbox() {
+    EL.lightbox.classList.add('hidden');
+    document.body.style.overflow = '';
+    UI._lbGallery = [];
+    UI._lbIdx     = 0;
+  },
+
+  showPopup(html, btn) {
+    EL.popup.innerHTML = html;
+    EL.popup.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      const r  = btn.getBoundingClientRect();
+      const pw = EL.popup.offsetWidth, ph = EL.popup.offsetHeight;
+      const vw = window.innerWidth,    vh = window.innerHeight;
+      EL.popup.style.left = (r.right + CONFIG.POPUP_GAP + pw < vw
+        ? r.right + CONFIG.POPUP_GAP
+        : r.left - pw - CONFIG.POPUP_GAP) + 'px';
+      EL.popup.style.top = Math.max(CONFIG.POPUP_GAP, Math.min(r.top, vh - ph - CONFIG.POPUP_GAP)) + 'px';
+    });
+  },
+
+  hidePopup() { EL.popup.classList.add('hidden'); EL.popup.innerHTML = ''; },
+
+  renderHistory() {
+    const list = STORE.histLoad();
+    EL.histCnt.textContent = list.length;
+    if (!list.length) { EL.histGrid.innerHTML = '<div class="hist-empty">No images yet</div>'; return; }
+    EL.histGrid.innerHTML = list.map(e => {
+      const src = STORE.get(e.key); if (!src) return '';
+      return `<div class="hist-card" data-key="${e.key}">
+        <img src="${src}" alt="" loading="lazy">
+        <div class="hist-del" data-del="${e.key}">✕</div>
+        <div class="hist-prompt">${(e.prompt ?? '').slice(0,40).replace(/"/g,'&quot;')}</div>
+      </div>`;
+    }).filter(Boolean).join('');
+  },
+
+  showTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+    EL.tabGen.classList.toggle('hidden', tabId !== 'gen');
+    EL.tabLib.classList.toggle('hidden', tabId !== 'lib');
+    if (tabId === 'lib') LIB_UI.renderGrid();
+  },
+
+  updateCastPanel() {
+    const chars = CHAR_STORE.list();
+    EL.castPanel.classList.toggle('hidden', !chars.length);
+    if (!chars.length) return;
+    EL.castBadge.textContent = STATE.cast.length ? `${STATE.cast.length} active` : '';
+    LIB_UI.renderCastList();
+  },
+
+  // تحديث شريط التقدم — update portrait progress bar
+  setPortProgress(type, pct) {
+    const prog = document.getElementById(`prog-${type}`);
+    const bar  = document.getElementById(`prog-${type}-bar`);
+    if (!prog || !bar) return;
+    if (pct === null) { prog.classList.remove('active'); bar.style.width = '0%'; return; }
+    prog.classList.add('active');
+    bar.style.width = `${pct}%`;
+  },
+
+  toggleSection(bodyEl, arrEl) {
+    const open = bodyEl.classList.toggle('open');
+    arrEl?.classList.toggle('open', open);
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// LIB_UI
+// ══════════════════════════════════════════════════════════════════════
+const LIB_UI = {
+  renderGrid() {
+    const chars = CHAR_STORE.list();
+    EL.libCnt.textContent = chars.length;
+    EL.libGrid.innerHTML  = '';
+    const tmpl = document.getElementById('t-char');
+
+    if (!chars.length) {
+      const blank = document.createElement('div');
+      blank.className = 'char-wrap';
+      blank.innerHTML = `<div class="char-new"><div class="char-new-icon">+</div><div class="char-new-lbl">New Character</div></div>`;
+      blank.querySelector('.char-new').onclick = () => LIB_APP.openNew();
+      EL.libGrid.appendChild(blank);
+      return;
+    }
+
+    chars.forEach(char => {
+      const wrap = tmpl.content.cloneNode(true).firstElementChild;
+      const card = wrap.querySelector('.char-card');
+      const img  = wrap.querySelector('img');
+      const name = wrap.querySelector('.char-name');
+      const emp  = wrap.querySelector('.char-empty');
+      const empN = wrap.querySelector('.char-en');
+
+      card.dataset.charId = char.id;
+      name.textContent    = char.name || '(unnamed)';
+      empN.textContent    = char.name || '(unnamed)';
+
+      const portrait = CHAR_STORE.getPortrait(char.id);
+      if (portrait) {
+        img.src = portrait; img.classList.remove('hidden');
+        emp.classList.add('hidden');
+        img.onclick = () => UI.openLightbox(char.portraitKey);
+      }
+
+      wrap.querySelector('.btn-edit').onclick = () => LIB_APP.openEditor(char.id);
+      EL.libGrid.appendChild(wrap);
+    });
+
+    if (chars.length < CONFIG.CHAR_LIMIT) {
+      const nw = document.createElement('div');
+      nw.className = 'char-wrap';
+      nw.innerHTML = `<div class="char-new"><div class="char-new-icon">+</div><div class="char-new-lbl">New Character</div></div>`;
+      nw.querySelector('.char-new').onclick = () => LIB_APP.openNew();
+      EL.libGrid.appendChild(nw);
+    }
+  },
+
+  renderCastList() {
+    const chars = CHAR_STORE.list();
+    if (!STATE.cast.length) {
+      EL.castList.innerHTML = '<div class="list-empty">No characters added</div>';
+      return;
+    }
+    EL.castList.innerHTML = STATE.cast.map((entry, idx) => {
+      const ch    = chars.find(c => c.id === entry.charId);
+      const por   = ch ? CHAR_STORE.getPortrait(ch.id) : null;
+      const thumb = por ? `<img class="cast-thumb" src="${por}" alt="">` : `<div class="cast-ph">👤</div>`;
+      const charOpts = chars.map(c =>
+        `<option value="${c.id}" ${c.id === entry.charId ? 'selected' : ''}>${c.name || '(unnamed)'}</option>`
+      ).join('');
+      const roleOpts = CHAR_DNA.CAST_ROLES.map(([v,l]) =>
+        `<option value="${v}" ${v === entry.role ? 'selected' : ''}>${l}</option>`
+      ).join('');
+      const seedBadge = ch?.seed ? `<span class="cast-seed">🎲${ch.seed}</span>` : '';
+      return `<div class="cast-entry" data-idx="${idx}">
+        ${thumb}
+        <select class="fi" style="flex:1" data-cast-char="${idx}">${charOpts}</select>
+        <select class="fi" style="width:90px;flex-shrink:0" data-cast-role="${idx}">${roleOpts}</select>
+        ${seedBadge}
+        <button class="cast-rm" data-cast-del="${idx}">✕</button>
+      </div>`;
+    }).join('');
+  },
+
+  renderEditorPortrait(charId) {
+    const bust = CHAR_STORE.getPortrait(charId);
+    const full = CHAR_STORE.getFullbody(charId);
+
+    if (bust) { EL.epImgBust.src = bust; EL.epImgBust.classList.remove('hidden'); EL.epEmptyBust.classList.add('hidden'); }
+    else       { EL.epImgBust.classList.add('hidden'); EL.epEmptyBust.classList.remove('hidden'); }
+
+    if (full) { EL.epImgFull.src = full; EL.epImgFull.classList.remove('hidden'); EL.epEmptyFull.classList.add('hidden'); }
+    else       { EL.epImgFull.classList.add('hidden'); EL.epEmptyFull.classList.remove('hidden'); }
+  },
+
+  populateEditorForm(char) {
+    const dna = char.dna ?? {};
+    EL.edName.value    = char.name ?? '';
+    EL.edGender.value  = dna.gender ?? 'woman';
+    EL.edSeed.value    = char.seed ?? '';
+    EL.edSeed2.value   = char.seed ?? '';
+
+    const toId = k => 'ed-' + k.replace(/([A-Z])/g, c => '-' + c.toLowerCase());
+    ['age','ethnicity','skin','skinTex','faceShape','eyeColor','eyeShape',
+     'hairColor','hairLength','hairStyle','eyebrows','nose','lips','height','build'].forEach(k => {
+      const el = document.getElementById(toId(k));
+      if (el) el.value = dna[k] ?? '';
+    });
+    const edExtra = document.getElementById('ed-extra');
+    if (edExtra) edExtra.value = dna.extra ?? '';
+
+    document.querySelectorAll('#ed-marks .tag').forEach(t =>
+      t.classList.toggle('on', (dna.marks ?? []).includes(t.dataset.val)));
+    document.querySelectorAll('#ed-accessories .tag').forEach(t =>
+      t.classList.toggle('on', (dna.accessories ?? []).includes(t.dataset.val)));
+
+    LIB_UI.updateDNAPreview();
+  },
+
+  updateDNAPreview() {
+    if (!STATE.editingChar) return;
+    const prev = document.getElementById('dna-preview');
+    if (prev) prev.textContent = CHAR.buildDNA(CHAR.readForm()) || '—';
+  },
+
+  buildEditorSelects() {
+    const fill = (id, map) => { const el = document.getElementById(id); if (el) el.innerHTML = UTILS.toOptions(map); };
+    fill('ed-ethnicity',  CHAR_DNA.ETHNICITY);
+    fill('ed-skin',       CHAR_DNA.SKIN);
+    fill('ed-skin-tex',   CHAR_DNA.SKIN_TEX);
+    fill('ed-face-shape', CHAR_DNA.FACE_SHAPE);
+    fill('ed-eye-color',  CHAR_DNA.EYE_COLOR);
+    fill('ed-eye-shape',  CHAR_DNA.EYE_SHAPE);
+    fill('ed-hair-color', CHAR_DNA.HAIR_COLOR);
+    fill('ed-hair-length',CHAR_DNA.HAIR_LENGTH);
+    fill('ed-hair-style', CHAR_DNA.HAIR_STYLE);
+    fill('ed-eyebrows',   CHAR_DNA.EYEBROWS);
+    fill('ed-nose',       CHAR_DNA.NOSE);
+    fill('ed-lips',       CHAR_DNA.LIPS);
+    fill('ed-height',     CHAR_DNA.HEIGHT);
+    fill('ed-build',      CHAR_DNA.BUILD);
+
+    const mkTags = (list, id) => {
+      const c = document.getElementById(id); if (!c) return;
+      c.innerHTML = list.map(([v,l]) => `<button class="tag" data-val="${v}">${l}</button>`).join('');
+    };
+    mkTags(CHAR_DNA.MARKS,       'ed-marks');
+    mkTags(CHAR_DNA.ACCESSORIES, 'ed-accessories');
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// LIB_APP
+// ══════════════════════════════════════════════════════════════════════
+const LIB_APP = {
+  openNew() {
+    if (CHAR_STORE.list().length >= CONFIG.CHAR_LIMIT) {
+      UI.setStatus(`Character limit (${CONFIG.CHAR_LIMIT}) reached`, 'err'); return;
+    }
+    const char = CHAR.newData();
+    CHAR_STORE.upsert(char);
+    LIB_APP.openEditor(char.id);
+  },
+
+  openEditor(charId) {
+    STATE.editingChar = charId;
+    const char = CHAR_STORE.get(charId); if (!char) return;
+    EL.libGridV.classList.add('hidden');
+    EL.libEdV.classList.remove('hidden');
+    LIB_UI.renderEditorPortrait(charId);
+    LIB_UI.populateEditorForm(char);
+  },
+
+  backToGrid() {
+    STATE.editingChar = null;
+    EL.libEdV.classList.add('hidden');
+    EL.libGridV.classList.remove('hidden');
+    LIB_UI.renderGrid();
+    UI.updateCastPanel();
+  },
+
+  saveChar() {
+    const id = STATE.editingChar; if (!id) return;
+    const ch = CHAR_STORE.get(id); if (!ch) return;
+    ch.name = EL.edName.value.trim() || 'Unnamed';
+    ch.dna  = CHAR.readForm();
+    ch.seed = parseInt(EL.edSeed.value || EL.edSeed2.value) || ch.seed || UTILS.randSeed();
+    EL.edSeed.value  = ch.seed;
+    EL.edSeed2.value = ch.seed;
+    CHAR_STORE.upsert(ch);
+    UI.setStatus(`"${ch.name}" saved ✓`, 'ready');
+    LIB_APP.backToGrid();
+  },
+
+  // تطبيق بيانات AI على حقول النموذج — apply AI-generated data onto form fields
+  applyRandData(data) {
+    const ID_MAP = {
+      age:'ed-age', ethnicity:'ed-ethnicity', skin:'ed-skin', skinTex:'ed-skin-tex',
+      faceShape:'ed-face-shape', eyeColor:'ed-eye-color', eyeShape:'ed-eye-shape',
+      hairColor:'ed-hair-color', hairLength:'ed-hair-length', hairStyle:'ed-hair-style',
+      eyebrows:'ed-eyebrows', nose:'ed-nose', lips:'ed-lips',
+      height:'ed-height', build:'ed-build',
+    };
+    if (data.gender !== undefined) EL.edGender.value = data.gender;
+    Object.entries(ID_MAP).forEach(([k, id]) => {
+      const el = document.getElementById(id);
+      if (el && data[k] !== undefined) el.value = data[k];
+    });
+    ['marks','accessories'].forEach(k => {
+      const containerId = k === 'marks' ? 'ed-marks' : 'ed-accessories';
+      if (data[k]) document.querySelectorAll(`#${containerId} .tag`).forEach(t =>
+        t.classList.toggle('on', data[k].includes(t.dataset.val)));
+    });
+    LIB_UI.updateDNAPreview();
+  },
+
+  // توليد عشوائي مع احترام العرق والمدخلات اليدوية — randomize with ethnicity coherence + respect manual
+  // فوري بالكامل — fully instant, zero API calls
+  randSection(sections) {
+    try {
+      LIB_APP.applyRandData(LOGIC.randomizeCharLocal(sections, CHAR.readForm()));
+      UI.setStatus('Randomized ✓', 'ready');
+    } catch(err) { UI.setStatus(err.message, 'err'); }
+  },
+
+ async genBothPortraits(type = 'both') {
+  const id = STATE.editingChar; if (!id || STATE.busy) return;
+  const ch = CHAR_STORE.get(id); if (!ch) return;
+
+  ch.name = EL.edName.value.trim() || 'Unnamed';
+  ch.dna  = CHAR.readForm();
+  ch.seed = parseInt(EL.edSeed.value) || ch.seed || UTILS.randSeed();
+  EL.edSeed.value = ch.seed;
+  CHAR_STORE.upsert(ch);
+
+  const negBase = CONFIG.NEG_BASE + ',' + CONFIG.NEG_MED;
+    const negFull = negBase + ',cropped legs,cut off feet,missing legs,upper body only,bust shot,head shot,waist up,portrait crop,partial figure,floating torso';
+    STATE.busy = true; EL.btnGenBoth.disabled = true; EL.btnGenBoth.textContent = '⏳…';
+
+    // انيميشن التقدم — progress animation (simulated: image API has no real progress events)
+    const animProg = (type, onDone) => {
+      UI.setPortProgress(type, 5);
+      const STEPS = [[15,300],[35,600],[55,1200],[72,1800],[85,2400],[93,3200]];
+      const timers = STEPS.map(([pct, ms]) => setTimeout(() => UI.setPortProgress(type, pct), ms));
+      return { clear: () => { timers.forEach(clearTimeout); onDone(); } };
+    };
+
+    try {
+      if (type === 'both' || type === 'bust') {
+        UI.setStatus('Generating portrait…', 'busy');
+        const anim = animProg('bust', () => UI.setPortProgress('bust', 100));
+        try {
+          const { dataUrl } = await LOGIC.genImage(CHAR.buildPortraitPrompt(ch), negBase, ch.seed, 512, 512);
+          anim.clear(); UI.setPortProgress('bust', 100);
+          CHAR_STORE.setPortrait(id, dataUrl);
+        } catch(e) { anim.clear(); UI.setPortProgress('bust', null); throw e; }
+      }
+      if (type === 'both' || type === 'full') {
+        UI.setStatus('Generating full body…', 'busy');
+        const anim = animProg('full', () => UI.setPortProgress('full', 100));
+        try {
+          const { dataUrl } = await LOGIC.genImage(CHAR.buildFullbodyPrompt(ch), negFull, ch.seed, 512, 768);
+          anim.clear(); UI.setPortProgress('full', 100);
+          CHAR_STORE.setFullbody(id, dataUrl);
+        } catch(e) { anim.clear(); UI.setPortProgress('full', null); throw e; }
+      }
+      LIB_UI.renderEditorPortrait(id);
+      UI.setStatus('Portraits generated ✓', 'ready');
+      // إخفاء الشريط بعد ثانية — hide bar after 1s
+      setTimeout(() => { UI.setPortProgress('bust', null); UI.setPortProgress('full', null); }, 1000);
+    } catch(err) { UI.setStatus('Portrait failed: ' + err.message, 'err');
+    } finally {
+      STATE.busy = false; EL.btnGenBoth.disabled = false; EL.btnGenBoth.textContent = '🎨 Generate Both';
+    }
+},
+  
+  handleEditorCorner(ecc) {
+    const id = STATE.editingChar; if (!id) return;
+    if      (ecc === 'regen-bust') LIB_APP.genBothPortraits('bust');
+    else if (ecc === 'regen-full') LIB_APP.genBothPortraits('full');
+    else if (ecc === 'dl-bust') {
+      const src = CHAR_STORE.getPortrait(id); if (!src) return;
+      Object.assign(document.createElement('a'), { href:src, download:`portrait_${id}.jpg` }).click();
+    } else if (ecc === 'dl-full') {
+      const src = CHAR_STORE.getFullbody(id); if (!src) return;
+      Object.assign(document.createElement('a'), { href:src, download:`fullbody_${id}.jpg` }).click();
+    } else if (ecc === 'del-bust') {
+      if (!confirm('Remove portrait?')) return;
+      const ch = CHAR_STORE.get(id); if (!ch) return;
+      if (ch.portraitKey) { try { localStorage.removeItem(ch.portraitKey); } catch {} }
+      ch.portraitKey = null; CHAR_STORE.upsert(ch); LIB_UI.renderEditorPortrait(id);
+    } else if (ecc === 'del-full') {
+      if (!confirm('Remove full body?')) return;
+      const ch = CHAR_STORE.get(id); if (!ch) return;
+      if (ch.fullbodyKey) { try { localStorage.removeItem(ch.fullbodyKey); } catch {} }
+      ch.fullbodyKey = null; CHAR_STORE.upsert(ch); LIB_UI.renderEditorPortrait(id);
+    }
+  },
+
+  handleCharCorner(cc, charId, btn) {
+    if (cc === 'del')   LIB_APP.deleteChar(charId);
+    if (cc === 'dna')   LIB_APP.showDNAPopup(charId, btn);
+    if (cc === 'regen') LIB_APP.regenPortrait(charId);
+  },
+
+  deleteChar(charId) {
+    const ch = CHAR_STORE.get(charId); if (!ch) return;
+    if (!confirm(`Delete "${ch.name || 'this character'}"?`)) return;
+    CHAR_STORE.delete(charId);
+    LIB_UI.renderGrid();
+    UI.updateCastPanel();
+    UI.setStatus('Character deleted', 'ready');
+  },
+
+  showDNAPopup(charId, btn) {
+    const ch  = CHAR_STORE.get(charId); if (!ch) return;
+    const dna = CHAR.buildDNA(ch.dna ?? {});
+    UI.showPopup(`
+      <div class="pop-title"><span>📋 ${ch.name || 'Character'} DNA</span><span class="pop-close">✕</span></div>
+      <div class="dna-pop-box">${dna || '— No DNA data —'}</div>
+      <div class="pop-row" style="margin-top:var(--xs)">
+        <button class="pop-btn" data-pa="copy-dna" data-dna="${encodeURIComponent(dna)}">📋 Copy</button>
+        <button class="pop-btn grn" data-pa="close">Close</button>
+      </div>
+    `, btn);
+  },
+
+  async regenPortrait(charId) {
+    const ch = CHAR_STORE.get(charId); if (!ch || STATE.busy) return;
+    STATE.busy = true; UI.setStatus('Regenerating portrait…', 'busy');
+    try {
+      const { dataUrl } = await LOGIC.genImage(
+        CHAR.buildPortraitPrompt(ch), CONFIG.NEG_BASE + ',' + CONFIG.NEG_MED, ch.seed, 512, 512);
+      CHAR_STORE.setPortrait(charId, dataUrl);
+      LIB_UI.renderGrid();
+      UI.setStatus('Portrait updated ✓', 'ready');
+    } catch(err) { UI.setStatus('Regen failed: ' + err.message, 'err');
+    } finally { STATE.busy = false; }
+  },
+
+  clearForm() {
+    EL.edGender.value = 'woman';
+    ['ed-age','ed-ethnicity','ed-skin','ed-skin-tex','ed-face-shape',
+     'ed-eye-color','ed-eye-shape','ed-hair-color','ed-hair-length','ed-hair-style',
+     'ed-eyebrows','ed-nose','ed-lips','ed-height','ed-build','ed-extra']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.querySelectorAll('#ed-marks .tag.on, #ed-accessories .tag.on')
+      .forEach(t => t.classList.remove('on'));
+    LIB_UI.updateDNAPreview();
+    UI.setStatus('Fields cleared', 'ready');
+  },
+
+  addCast() {
+    const chars = CHAR_STORE.list(); if (!chars.length) return;
+    const used  = new Set(STATE.cast.map(e => e.charId));
+    const avail = chars.find(c => !used.has(c.id)) ?? chars[0];
+    STATE.cast.push({ charId: avail.id, role: 'foreground' });
+    LIB_UI.renderCastList();
+    UI.updateCastPanel();
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// LOGIC
+// ══════════════════════════════════════════════════════════════════════
+const LOGIC = {
+  // FIX: generateText الصحيح لـ Perchance — correct Perchance ai-text-plugin API
+  async callAI(instruction, userContent) {
+    if (typeof generateText === 'undefined')
+      throw new Error('ai-text-plugin not loaded in List Editor.');
+    let result = '';
+    const full = userContent?.trim()
+      ? `${instruction}\n\n---\n${userContent}`
+      : instruction;
+    const obj = generateText({
+      instruction: full,
+      onChunk: c => { result += typeof c === 'string' ? c : (c?.chunk ?? c?.text ?? c?.textChunk ?? ''); },
+    });
+    if      (obj instanceof Promise) await obj;
+    else if (obj?.onFinishPromise)   await obj.onFinishPromise;
+    return result.trim();
+  },
+
+  async genImage(positive, negative, seed, w, h) {
+    if (typeof image === 'undefined')
+      throw new Error('text-to-image-plugin not loaded in List Editor.');
+    const s   = seed ?? UTILS.randSeed();
+    const raw = await image({ prompt: positive, negativePrompt: negative, seed: s, width: w, height: h });
+    const src = UTILS.extractSrc(raw);
+    if (!src) throw new Error('Plugin returned no usable image source.');
+    const dataUrl = await UTILS.toDataUrl(src);
+    if (!dataUrl) throw new Error('Could not convert image to dataURL.');
+    return { dataUrl, seed: s };
+  },
+
+  buildEnhanceInstruction(styleKey, genreKey, isMulti) {
+    const style = CONFIG.ART_STYLES.find(a => a[0] === styleKey)?.[1] ?? 'Default';
+    const genre = CONFIG.GENRES.find(g => g[0] === genreKey)?.[1]     ?? '';
+    return [
+      'You are an expert image prompt engineer for AI image generators.',
+      `Art Style: ${style}`,
+      genre   && `Genre/Theme: ${genre}`,
+      isMulti && 'IMPORTANT: Multiple people — keep count explicit, describe each figure separately.',
+      'Rules: English only, max 60 words. VISUAL elements only: lighting, composition, colors, textures. Output ONLY the improved prompt — no preamble, no quotes.',
+    ].filter(Boolean).join('\n');
+  },
+
+  // FIX: instruction منسجم مع العرق + يحترم المدخلات اليدوية
+
+  
+  // توليد عشوائي فوري من CHAR_DNA بدون AI — instant randomize from CHAR_DNA, zero AI calls
+  randomizeCharLocal(sections, currentDNA) {
+    const rand    = arr => arr[Math.floor(Math.random() * arr.length)];
+    const randN   = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const randArr = (arr, max) => [...arr].sort(() => Math.random() - .5).slice(0, randN(0, max));
+
+    const SEC_FIELDS = {
+      identity: ['gender','age','ethnicity','skin','skinTex'],
+      face:     ['faceShape','eyeColor','eyeShape','hairColor','hairLength','hairStyle','eyebrows','nose','lips','marks','accessories'],
+      body:     ['height','build'],
+    };
+
+    const ethnicity = currentDNA.ethnicity || '';
+    const ethCtx    = CONFIG.ETHNICITY_CONTEXT[ethnicity];
+    const result    = {};
+
+    sections.forEach(s => (SEC_FIELDS[s] ?? []).forEach(k => {
+      // احترام المدخلات اليدوية إن كان مفعّلاً — respect manual inputs if enabled
+      if (STATE.respectManual) {
+        const v = currentDNA[k];
+        if (Array.isArray(v) ? v.length > 0 : (v && v !== '')) return;
+      }
+
+      // خريطة الحقل → القائمة المناسبة — field → pool mapping
+      const POOLS = {
+        gender:     CHAR_DNA.GENDER.map(x=>x[0]).filter(Boolean),
+        ethnicity:  CHAR_DNA.ETHNICITY.slice(1).map(x=>x[0]),
+        skin:       CHAR_DNA.SKIN.slice(1).map(x=>x[0]),
+        skinTex:    CHAR_DNA.SKIN_TEX.slice(1).map(x=>x[0]),
+        faceShape:  CHAR_DNA.FACE_SHAPE.slice(1).map(x=>x[0]),
+        eyeShape:   CHAR_DNA.EYE_SHAPE.slice(1).map(x=>x[0]),
+        hairLength: CHAR_DNA.HAIR_LENGTH.slice(1).map(x=>x[0]),
+        hairStyle:  CHAR_DNA.HAIR_STYLE.slice(1).map(x=>x[0]),
+        eyebrows:   CHAR_DNA.EYEBROWS.slice(1).map(x=>x[0]),
+        nose:       CHAR_DNA.NOSE.slice(1).map(x=>x[0]),
+        lips:       CHAR_DNA.LIPS.slice(1).map(x=>x[0]),
+        height:     CHAR_DNA.HEIGHT.slice(1).map(x=>x[0]),
+        build:      CHAR_DNA.BUILD.slice(1).map(x=>x[0]),
+        // قيود العرق لأهم الحقول — ethnicity-constrained pools
+        eyeColor:   ethCtx?.eyeColor  ?? CHAR_DNA.EYE_COLOR.slice(1).map(x=>x[0]),
+        hairColor:  ethCtx?.hairColor ?? CHAR_DNA.HAIR_COLOR.slice(1).map(x=>x[0]),
+      };
+
+      if (k === 'age')         result.age         = randN(1, 55);
+      else if (k === 'marks')  result.marks        = randArr(CHAR_DNA.MARKS.map(x=>x[0]), 3);
+      else if (k === 'accessories') result.accessories = randArr(CHAR_DNA.ACCESSORIES.map(x=>x[0]), 2);
+      else if (POOLS[k])       result[k]           = rand(POOLS[k]);
+    }));
+
+    if (!Object.keys(result).length)
+      throw new Error('All fields already set — toggle 🔓 Overwrite All to randomize filled fields.');
+
+    return result;
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// App
+// ══════════════════════════════════════════════════════════════════════
+const App = {
+  readInputs: () => ({
+    rawPrompt: EL.promptIn.value.trim(),
+    styleKey:  EL.styleSel.value,
+    genreKey:  EL.genreSel.value,
+    shapeKey:  EL.shapeSel.value,
+    userNeg:   EL.negIn.value,
+    count:     parseInt(EL.countSel.value) || 6,
+    isRandom:  EL.randSeed.checked,
+    seedVal:   parseInt(EL.seedIn.value) || null,
+  }),
+
+  async generate(opts = {}) {
+    if (STATE.busy) return;
+    const { posOverride=null, negOverride=null, countOverride=null, seedOverride=null, targetCard=null } = opts;
+    const inp = App.readInputs();
+    if (!inp.rawPrompt && !posOverride) { EL.promptIn.focus(); return; }
+
+    const shape    = CONFIG.SHAPES[inp.shapeKey] ?? CONFIG.SHAPES.square;
+    const positive = posOverride ?? UTILS.buildCastPositive(inp.rawPrompt, inp.styleKey, inp.genreKey, inp.shapeKey);
+    const negative = negOverride ?? UTILS.buildNegative(inp.rawPrompt, inp.userNeg);
+    const count    = countOverride ?? inp.count;
+    // استخدام seed الشخصية الأولى لضمان الثبات — use first cast char seed for consistency
+    const castSeed = STATE.cast.length ? (CHAR_STORE.get(STATE.cast[0].charId)?.seed ?? null) : null;
+    const seed     = seedOverride ?? (inp.isRandom ? castSeed : inp.seedVal);
+
+    STATE.busy = true; EL.btnGen.disabled = true;
+    try {
+      if (targetCard) {
+        UI.setStatus('Regenerating…', 'busy');
+        await App._genCard(targetCard, positive, negative, seed, shape, inp);
+        UI.setStatus('Done ✓', 'ready'); UI.renderHistory();
+      } else {
+        UI.setupGrid(count, shape);
+        UI.setStatus(`Generating 0/${count}…`, 'busy');
+        const cards = [...EL.batchGrid.querySelectorAll('.batch-card')];
+        let done = 0;
+        // توليد متوازٍ بدفعات من 3 — parallel generation in batches of 3
+        const BATCH = 3;
+        for (let i = 0; i < cards.length; i += BATCH) {
+          const batch = cards.slice(i, i + BATCH);
+          await Promise.all(batch.map((card, j) =>
+            App._genCard(card, positive, negative, (i === 0 && j === 0) ? seed : null, shape, inp)
+              .then(() => UI.setStatus(`Generated ${++done}/${count}…`, 'busy'))
+          ));
+        }
+        UI.setStatus(`Done ✓ · ${done}/${count}`, 'ready'); UI.renderHistory();
+      }
+    } finally { STATE.busy = false; EL.btnGen.disabled = false; }
+  },
+
+  async _genCard(card, positive, negative, seed, shape, inp) {
+    try {
+      const { dataUrl, seed:s } = await LOGIC.genImage(positive, negative, seed, shape.w, shape.h);
+      const key = UTILS.genKey();
+      STORE.set(key, dataUrl);
+      Object.assign(card.dataset, { key, seed:s, pos:positive, neg:negative, raw:inp?.rawPrompt??'', style:inp?.styleKey??'', genre:inp?.genreKey??'', shape:inp?.shapeKey??'square' });
+      UI.fillCard(card, key);
+      STORE.histAdd({ key, seed:s, prompt:inp?.rawPrompt??'', styleKey:inp?.styleKey??'', genreKey:inp?.genreKey??'', shapeKey:inp?.shapeKey??'square' });
+    } catch(err) { UI.showCardError(card, err.message); }
+  },
+
+  async enhance() {
+    const raw = EL.promptIn.value.trim();
+    if (!raw || STATE.busy) return;
+    STATE.busy = true; EL.btnEnhance.disabled = true; EL.btnEnhance.textContent = '⏳';
+    UI.setStatus('Enhancing…', 'busy');
+    try {
+      const enhanced = await LOGIC.callAI(
+        LOGIC.buildEnhanceInstruction(EL.styleSel.value, EL.genreSel.value, UTILS.isMulti(raw)), raw);
+      EL.promptIn.value = enhanced;
+      UI.updateMultiBadge(enhanced);
+      UI.setStatus('Enhanced ✓', 'ready');
+    } catch(err) { UI.setStatus('Enhance failed: ' + err.message, 'err');
+    } finally { STATE.busy = false; EL.btnEnhance.disabled = false; EL.btnEnhance.textContent = '✨ AI Enhance'; }
+  },
+
+  handleCorner(btn) {
+    const card   = btn.closest('.batch-card');
+    const corner = btn.dataset.corner;
+    STATE.activeCard = card;
+    if (corner === 'heart')  App.showHeartPopup(card, btn);
+    if (corner === 'flag')   App.showFlagPopup(card, btn);
+    if (corner === 'prompt') App.showPromptPopup(card, btn);
+    if (corner === 'regen')  App.cornerRegen(card);
+  },
+
+  showHeartPopup(card, btn) {
+    const inHist = STORE.histLoad().some(e => e.key === card.dataset.key);
+    UI.showPopup(`
+      <div class="pop-title"><span>❤️ Save Options</span><span class="pop-close">✕</span></div>
+      <div class="pop-row"><button class="pop-btn grn" data-pa="hist">📮 Save to History</button></div>
+      <div class="pop-row"><button class="pop-btn" data-pa="dl">💾 Save to Device</button></div>
+      ${inHist ? '<div class="pop-ok">✓ Already in history</div>' : ''}
+    `, btn);
+  },
+
+  showFlagPopup(card, btn) {
+    UI.showPopup(`
+      <div class="pop-title"><span>🚩 Report Image</span><span class="pop-close">✕</span></div>
+      <div>${CONFIG.FLAG_REASONS.map(r => `<button class="flag-opt" data-pf="${r}">${r}</button>`).join('')}</div>
+    `, btn);
+  },
+
+  showPromptPopup(card, btn) {
+    UI.showPopup(`
+      <div class="pop-title"><span>📋 Prompt Inspector</span><span class="pop-close">✕</span></div>
+      <div class="pop-sect">✅ Positive Prompt</div>
+      <textarea class="ft ft-sm" id="pp-pos" rows="4">${card.dataset.pos ?? ''}</textarea>
+      <div class="pop-sect" style="margin-top:var(--xs)">🚫 Negative Prompt</div>
+      <textarea class="ft ft-sm" id="pp-neg" rows="3">${card.dataset.neg ?? ''}</textarea>
+      <div class="pop-row" style="margin-top:var(--xs)"><button class="pop-btn gld" data-pa="regen-edited">🔄 Regen with edits</button></div>
+    `, btn);
+  },
+
+  cornerRegen(card) {
+    if (STATE.busy) return;
+    UI.hidePopup(); UI.showCardRegen(card);
+    App._regenCard(card, card.dataset.pos, card.dataset.neg, null,
+      CONFIG.SHAPES[card.dataset.shape] ?? CONFIG.SHAPES.square, card.dataset.key);
+  },
+
+  regenWithEdited(card) {
+    const pos = document.getElementById('pp-pos')?.value.trim();
+    const neg = document.getElementById('pp-neg')?.value.trim();
+    if (!pos) return;
+    UI.hidePopup(); UI.showCardRegen(card);
+    App._regenCard(card, pos, neg || CONFIG.NEG_BASE, null,
+      CONFIG.SHAPES[card.dataset.shape] ?? CONFIG.SHAPES.square, card.dataset.key);
+  },
+
+  async _regenCard(card, positive, negative, seed, shape, oldKey) {
+    STATE.busy = true; EL.btnGen.disabled = true; UI.setStatus('Regenerating…', 'busy');
+    if (oldKey) { STORE.del(oldKey); STORE.histSave(STORE.histLoad().filter(e => e.key !== oldKey)); }
+    try {
+      const { dataUrl, seed:s } = await LOGIC.genImage(positive, negative, seed, shape.w, shape.h);
+      const key = UTILS.genKey(); STORE.set(key, dataUrl);
+      Object.assign(card.dataset, { key, seed:s, pos:positive, neg:negative });
+      UI.fillCard(card, key);
+      STORE.histAdd({ key, seed:s, prompt:card.dataset.raw??'', styleKey:card.dataset.style??'', genreKey:card.dataset.genre??'', shapeKey:card.dataset.shape??'square' });
+      UI.renderHistory(); UI.setStatus('Regenerated ✓', 'ready');
+    } catch(err) { UI.showCardError(card, err.message); UI.setStatus('Error: ' + err.message, 'err');
+    } finally { STATE.busy = false; EL.btnGen.disabled = false; }
+  },
+
+  handlePopupAction(action, dataset) {
+    const card = STATE.activeCard;
+    if (action === 'hist') {
+      UI.hidePopup();
+      if (card?.dataset.key) {
+        STORE.histAdd({ key:card.dataset.key, seed:card.dataset.seed, prompt:card.dataset.raw??'', styleKey:card.dataset.style??'', genreKey:card.dataset.genre??'', shapeKey:card.dataset.shape??'square' });
+        UI.renderHistory(); UI.setStatus('Saved to history ✓', 'ready');
+      }
+    } else if (action === 'dl') {
+      UI.hidePopup();
+      const src = STORE.get(card?.dataset?.key); if (!src) return;
+      Object.assign(document.createElement('a'), { href:src, download:`imagegen_${card.dataset.seed ?? Date.now()}.jpg` }).click();
+    } else if (action === 'regen-edited') {
+      App.regenWithEdited(card);
+    } else if (action === 'copy-dna') {
+      const dna = decodeURIComponent(dataset.dna ?? '');
+      navigator.clipboard?.writeText(dna).then(() => UI.setStatus('DNA copied ✓', 'ready'));
+      UI.hidePopup();
+    } else if (action === 'close') { UI.hidePopup(); }
+  },
+
+  handleFlag(reason) {
+    EL.popup.querySelector('.flag-opt')?.closest('div')?.replaceChildren(
+      Object.assign(document.createElement('div'), {
+        className: 'flag-sent',
+        innerHTML: `✓ Reported: "${reason}"<br><span class="pop-ty">Thank you</span>`,
+      })
+    );
+    setTimeout(() => UI.hidePopup(), 2000);
+  },
+
+  toggleNsfw()    { STATE.nsfw    = !STATE.nsfw;    UI.updateNsfwBtn(); },
+  toggleAnatomy() {
+    STATE.anatomy = !STATE.anatomy;
+    EL.btnAnatomy.dataset.state = STATE.anatomy ? 'on' : '';
+    EL.btnAnatomy.textContent   = STATE.anatomy ? '🔧 Fix ON' : '🔧 Fix Deformities';
+    UI.setStatus(STATE.anatomy ? 'Deformity fix active' : 'Deformity fix off', 'ready');
+  },
+
+  clearHistory() {
+    if (!confirm('Clear all image history?')) return;
+    STORE.histLoad().forEach(e => STORE.del(e.key)); STORE.histSave([]);
+    UI.renderHistory(); UI.setStatus('History cleared', 'ready');
+  },
+
+  buildSelectors() {
+    EL.styleSel.innerHTML = CONFIG.ART_STYLES.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+    EL.genreSel.innerHTML = CONFIG.GENRES.map(([v,l])     => `<option value="${v}">${l}</option>`).join('');
+    EL.countSel.innerHTML = CONFIG.COUNTS.map(n           => `<option value="${n}">${n} image${n>1?'s':''}</option>`).join('');
+    EL.shapeSel.innerHTML = Object.entries(CONFIG.SHAPES).map(([k,s]) => `<option value="${k}">${s.label}</option>`).join('');
+    EL.shapeSel.value     = 'square';
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════════════════════════════
+const EVENTS = {
+  bind() {
+    EL.btnGen     .addEventListener('click', () => App.generate());
+    EL.btnEnhance .addEventListener('click', () => App.enhance());
+    EL.btnNsfw    .addEventListener('click', () => App.toggleNsfw());
+    EL.btnAnatomy .addEventListener('click', () => App.toggleAnatomy());
+    EL.btnClrH    .addEventListener('click', () => App.clearHistory());
+
+    EL.setHd .addEventListener('click', () => UI.toggleSection(EL.setBody,  EL.setArr));
+    EL.negHd .addEventListener('click', () => UI.toggleSection(EL.negBody,  EL.negArr));
+    EL.castHd.addEventListener('click', () => UI.toggleSection(EL.castBody, EL.castArr));
+
+    EL.btnAddCast.addEventListener('click', () => LIB_APP.addCast());
+    EL.btnNewChar .addEventListener('click', () => LIB_APP.openNew());
+    EL.btnBack    .addEventListener('click', () => LIB_APP.backToGrid());
+    EL.btnSaveChar.addEventListener('click', () => LIB_APP.saveChar());
+    EL.btnGenBoth .addEventListener('click', () => LIB_APP.genBothPortraits('both'));
+    EL.btnRandAll .addEventListener('click', () => LIB_APP.randSection(['identity','face','body']));
+    EL.btnNewSeed .addEventListener('click', () => { EL.edSeed.value = UTILS.randSeed(); });
+    EL.btnCopyDNA .addEventListener('click', () => {
+      const dna = document.getElementById('dna-preview')?.textContent ?? '';
+      navigator.clipboard?.writeText(dna).then(() => UI.setStatus('DNA copied ✓', 'ready'));
+    });
+
+    // زر toggle احترام المدخلات اليدوية — respect manual toggle
+    EL.btnClearForm.addEventListener('click', () => LIB_APP.clearForm());
+
+    EL.btnNewSeed2.addEventListener('click', () => {
+      const v = UTILS.randSeed();
+      EL.edSeed.value  = v;
+      EL.edSeed2.value = v;
+    });
+
+    EL.edSeed .addEventListener('input', () => { EL.edSeed2.value = EL.edSeed.value; });
+    EL.edSeed2.addEventListener('input', () => { EL.edSeed.value  = EL.edSeed2.value; });
+
+    EL.btnRespectToggle.addEventListener('click', () => {
+      STATE.respectManual = !STATE.respectManual;
+      EL.btnRespectToggle.dataset.state = STATE.respectManual ? 'on' : 'off';
+      EL.btnRespectToggle.textContent   = STATE.respectManual ? '🔒 Respect Manual' : '🔓 Overwrite All';
+    });
+
+    EL.randSeed.addEventListener('change', e => { EL.seedIn.disabled = e.target.checked; if (e.target.checked) EL.seedIn.value = ''; });
+    EL.promptIn.addEventListener('input',   e => UI.updateMultiBadge(e.target.value));
+    EL.promptIn.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); App.generate(); } });
+    EL.lightbox.addEventListener('click', e => {
+      // إغلاق عند النقر على الخلفية فقط — close only on backdrop click
+      if (e.target === EL.lightbox) UI.closeLightbox();
+    });
+    EL.lbPrev.addEventListener('click', e => { e.stopPropagation(); UI.lbNav(-1); });
+    EL.lbNext.addEventListener('click', e => { e.stopPropagation(); UI.lbNav(+1); });
+
+    // تنقل بلوحة المفاتيح — keyboard navigation
+    document.addEventListener('keydown', e => {
+      if (EL.lightbox.classList.contains('hidden')) return;
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); UI.lbNav(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); UI.lbNav(+1); }
+    });
+
+    document.querySelector('.tab-bar').addEventListener('click', e => {
+      const tab = e.target.closest('.tab'); if (tab) UI.showTab(tab.dataset.tab);
+    });
+
+    EL.batchGrid.addEventListener('click', e => {
+      const btn = e.target.closest('.cbtn'); if (btn) { e.stopPropagation(); App.handleCorner(btn); }
+    });
+
+    EL.popup.addEventListener('click', e => {
+      e.stopPropagation();
+      if (e.target.closest('.pop-close')) { UI.hidePopup(); return; }
+      const pa = e.target.closest('[data-pa]'); if (pa) { App.handlePopupAction(pa.dataset.pa, pa.dataset); return; }
+      const pf = e.target.closest('[data-pf]'); if (pf) { App.handleFlag(pf.dataset.pf); return; }
+    });
+
+    EL.histGrid.addEventListener('click', e => {
+      const del  = e.target.closest('[data-del]');
+      const card = e.target.closest('.hist-card');
+      if (del)  { e.stopPropagation(); STORE.histDel(del.dataset.del); UI.renderHistory(); return; }
+      if (card) UI.openLightbox(card.dataset.key);
+    });
+
+    EL.castList.addEventListener('click', e => {
+      const del = e.target.closest('[data-cast-del]');
+      if (del) { STATE.cast.splice(parseInt(del.dataset.castDel), 1); LIB_UI.renderCastList(); UI.updateCastPanel(); }
+    });
+    EL.castList.addEventListener('change', e => {
+      const cc = e.target.dataset.castChar;
+      const cr = e.target.dataset.castRole;
+      if (cc !== undefined) { STATE.cast[parseInt(cc)].charId = e.target.value; LIB_UI.renderCastList(); }
+      if (cr !== undefined)   STATE.cast[parseInt(cr)].role   = e.target.value;
+    });
+
+    EL.libGrid.addEventListener('click', e => {
+      const cc   = e.target.closest('[data-cc]');
+      const edit = e.target.closest('.btn-edit');
+      if (cc) {
+        e.stopPropagation();
+        const charId = cc.closest('.char-card')?.dataset.charId; if (!charId) return;
+        STATE.activeCard = cc.closest('.char-card');
+        LIB_APP.handleCharCorner(cc.dataset.cc, charId, cc);
+      } else if (edit) {
+        const charId = edit.closest('.char-wrap')?.querySelector('.char-card')?.dataset.charId; if (!charId) return;
+        LIB_APP.openEditor(charId);
+      }
+    });
+
+    document.querySelector('.ed-portrait').addEventListener('click', e => {
+      const ecc = e.target.closest('[data-ecc]'); if (!ecc) return;
+      e.stopPropagation(); LIB_APP.handleEditorCorner(ecc.dataset.ecc);
+    });
+    EL.epImgBust.addEventListener('click', () => {
+      const ch = CHAR_STORE.get(STATE.editingChar); if (ch?.portraitKey) UI.openLightbox(ch.portraitKey);
+    });
+    EL.epImgFull.addEventListener('click', () => {
+      const ch = CHAR_STORE.get(STATE.editingChar); if (ch?.fullbodyKey) UI.openLightbox(ch.fullbodyKey);
+    });
+
+    document.querySelectorAll('.sec-hd').forEach(hd => {
+      hd.addEventListener('click', e => {
+        if (e.target.closest('.btn-rand')) return; // تجاهل زر 🎲 — ignore rand button
+        const body = document.getElementById(`sec-${hd.dataset.sec}`);
+        const arr  = hd.querySelector('.arr');
+        if (body) UI.toggleSection(body, arr);
+      });
+    });
+
+    document.getElementById('ed-form').addEventListener('change', () => LIB_UI.updateDNAPreview());
+    document.getElementById('ed-form').addEventListener('click', e => {
+      const tag  = e.target.closest('.tag');
+      const rsec = e.target.closest('[data-rand-sec]');
+      if (tag)  { tag.classList.toggle('on'); LIB_UI.updateDNAPreview(); return; }
+      if (rsec) { e.stopPropagation(); LIB_APP.randSection([rsec.dataset.randSec]); }
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#g-popup') && !e.target.closest('.cbtn') && !e.target.closest('[data-cc]'))
+        UI.hidePopup();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { UI.closeLightbox(); UI.hidePopup(); }
+    });
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  Object.assign(EL, {
+    promptIn:          document.getElementById('prompt-in'),
+    styleSel:          document.getElementById('style-sel'),
+    genreSel:          document.getElementById('genre-sel'),
+    shapeSel:          document.getElementById('shape-sel'),
+    countSel:          document.getElementById('count-sel'),
+    negIn:             document.getElementById('neg-in'),
+    negBody:           document.getElementById('neg-body'),
+    negArr:            document.getElementById('neg-arr'),
+    negHd:             document.getElementById('neg-hd'),
+    negNote:           document.getElementById('neg-note'),
+    setHd:             document.getElementById('set-hd'),
+    setBody:           document.getElementById('set-body'),
+    setArr:            document.getElementById('set-arr'),
+    randSeed:          document.getElementById('rand-seed'),
+    seedIn:            document.getElementById('seed-in'),
+    btnGen:            document.getElementById('btn-gen'),
+    btnEnhance:        document.getElementById('btn-enhance'),
+    btnNsfw:           document.getElementById('btn-nsfw'),
+    btnAnatomy:        document.getElementById('btn-anatomy'),
+    btnClrH:           document.getElementById('btn-clr-h'),
+    sbDot:             document.getElementById('sb-dot'),
+    sbTxt:             document.getElementById('sb-txt'),
+    multiBadge:        document.getElementById('multi-badge'),
+    resultPh:          document.getElementById('result-ph'),
+    batchGrid:         document.getElementById('batch-grid'),
+    histGrid:          document.getElementById('hist-grid'),
+    histCnt:           document.getElementById('hist-cnt'),
+    histLim:           document.getElementById('hist-lim'),
+    popup:             document.getElementById('g-popup'),
+    lightbox:          document.getElementById('lightbox'),
+    lbImg:             document.getElementById('lb-img'),
+    lbPrev:            document.getElementById('lb-prev'),
+    lbNext:            document.getElementById('lb-next'),
+    lbCounter:         document.getElementById('lb-counter'),
+    tabGen:            document.getElementById('tab-gen'),
+    tabLib:            document.getElementById('tab-lib'),
+    castPanel:         document.getElementById('cast-panel'),
+    castHd:            document.getElementById('cast-hd'),
+    castBody:          document.getElementById('cast-body'),
+    castArr:           document.getElementById('cast-arr'),
+    castList:          document.getElementById('cast-list'),
+    castBadge:         document.getElementById('cast-badge'),
+    btnAddCast:        document.getElementById('btn-add-cast'),
+    libGrid:           document.getElementById('lib-grid'),
+    libCnt:            document.getElementById('lib-cnt'),
+    libGridV:          document.getElementById('lib-grid-v'),
+    libEdV:            document.getElementById('lib-ed-v'),
+    btnNewChar:        document.getElementById('btn-new-char'),
+    btnBack:           document.getElementById('btn-back'),
+    edName:            document.getElementById('ed-name'),
+    edGender:          document.getElementById('ed-gender'),
+    edSeed:            document.getElementById('ed-seed'),
+    btnSaveChar:       document.getElementById('btn-save-char'),
+    btnGenBoth:        document.getElementById('btn-gen-both'),
+    btnRandAll:        document.getElementById('btn-rand-all'),
+    btnRespectToggle:  document.getElementById('btn-respect-toggle'),
+    btnNewSeed:        document.getElementById('btn-new-seed'),
+    btnCopyDNA:        document.getElementById('btn-copy-dna'),
+    epImgBust:         document.getElementById('ep-img-bust'),
+    epImgFull:         document.getElementById('ep-img-full'),
+    epEmptyBust:       document.getElementById('ep-empty-bust'),
+    epEmptyFull:       document.getElementById('ep-empty-full'),
+    btnClearForm:      document.getElementById('btn-clear-form'),
+    edSeed2:           document.getElementById('ed-seed2'),
+    btnNewSeed2:       document.getElementById('btn-new-seed2'),
+  });
+
+  App.buildSelectors();
+  LIB_UI.buildEditorSelects();
+  EL.negIn.value         = CONFIG.NEG_BASE;
+  EL.histLim.textContent = CONFIG.IMG_LIMIT;
+  // الافتراضي 6 صور — default count: 6
+  EL.countSel.value      = '6';
+  EVENTS.bind();
+  UI.renderHistory();
+  UI.updateNsfwBtn();
+  UI.updateCastPanel();
+  UI.setStatus('Ready', 'ready');
+});
+</script>
